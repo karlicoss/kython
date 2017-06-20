@@ -22,12 +22,16 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
 def json_dumps(fo, j):
     json.dump(j, fo, indent=4, sort_keys=True, ensure_ascii=False)
 
-def setup_logging():
-    level = logging.DEBUG
+def setup_logging(level=logging.DEBUG):
     logging.basicConfig(level=level)
     try:
         import coloredlogs # type: ignore
         coloredlogs.install(fmt="%(asctime)s [%(name)s] %(levelname)s %(message)s")
         coloredlogs.set_level(level)
-    except ImportError:
-        logging.info("Install coloredlogs for fancy colored logs!")
+    except ImportError as e:
+        if e.name == 'coloredlogs':
+            logger.exception(e)
+            logging.warning("Install coloredlogs for fancy colored logs!")
+        else:
+            raise e
+    logging.getLogger('requests').setLevel(logging.CRITICAL)
