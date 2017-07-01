@@ -7,6 +7,13 @@ class EnhancedRtm:
         self.timeline = self.api.rtm.timelines.create().timeline.value
         # TODO check for errors
 
+    # rtm doesn't have a syntax for exact match, what a shame!
+    def getTaskByName(self, name: str):
+        res = self.api.rtm.tasks.getList(filter=f'name:"{name}"')
+        [tlist] = list(res.tasks)
+        [task] = [t for t in tlist if t.name == name]
+        return task
+
     def addTask_(self, description: str, parent_id: str=None):
         """
            returns id of the new task
