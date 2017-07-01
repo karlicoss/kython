@@ -1,4 +1,5 @@
 from itertools import groupby
+from datetime import datetime
 from dateutil.parser import parse as parse_date
 import json
 from json import load as json_load, loads as json_loads
@@ -6,13 +7,23 @@ import logging
 import os
 from os.path import isfile
 from pprint import pprint
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional
 
+A = TypeVar('A')
+B = TypeVar('B')
 T = TypeVar('T')
 K = TypeVar('K')
 
 
 _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
+
+
+def TODO():
+    raise RuntimeError("TODO")
+
+
+def lmap(f: Callable[[A], B], l: Iterable[A]) -> List[B]:
+    return [f(i) for i in l]
 
 
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
@@ -40,7 +51,7 @@ def setup_logging(level=logging.DEBUG):
         coloredlogs.set_level(level)
     except ImportError as e:
         if e.name == 'coloredlogs':
-            logger.exception(e)
+            logging.exception(e)
             logging.warning("Install coloredlogs for fancy colored logs!")
         else:
             raise e
