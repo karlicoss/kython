@@ -1,7 +1,7 @@
 from itertools import groupby
 
 from datetime import datetime, timedelta
-from dateutil.parser import parse as parse_date
+from dateutil.parser import parse as __parse_date
 import pytz
 
 import json
@@ -11,6 +11,8 @@ import logging
 
 import os
 from os.path import isfile
+
+import sys
 
 from pprint import pprint
 
@@ -24,9 +26,36 @@ K = TypeVar('K')
 
 _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
 
+def debug(s):
+    sys.stderr.write(s + "\n")
+
+def parse_date(s):
+    RTM_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    try:
+        return datetime.strptime(s, RTM_FORMAT)
+    except ValueError as e:
+        # ok, carry on and use smart parser
+        pass
+    return __parse_date(s, dayfirst=True)
+    # TODO FIXME ok gonna need something smarter...
+    # RTM dates are interpreted weirdly.
+    # Maybe, hardcode rtm format and let other be interpreted with dateparser
 
 def TODO():
     raise RuntimeError("TODO")
+
+def IMPOSSIBLE(value = None):
+    raise AssertionError("Can't happen! " + str(value) if value is not None else '')
+
+
+def lzip(*iters):
+    return list(zip(*iters))
+
+
+def assert_increasing(l: List[T]):
+    for a, b in zip(l, l[1:]):
+        if a > b:
+            raise AssertionError("Expected {} < {}".format(a, b))
 
 
 def lmap(f: Callable[[A], B], l: Iterable[A]) -> List[B]:
@@ -42,6 +71,10 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
         res[kk] = lst
     return res
 
+
+def chunks(l: List[T], n: int):
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 def json_dumps(fo, j):
     json.dump(j, fo, indent=4, sort_keys=True, ensure_ascii=False)

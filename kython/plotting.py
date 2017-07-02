@@ -4,12 +4,8 @@ from kython import *
 
 
 def parse_timestamp(ts: str) -> Optional[datetime]: # TODO return??
-    try:
-        d = parse_date(ts)
-        return d
-    except Exception as e:
-        # TODO proper exception!
-        return None
+    d = parse_date(ts)
+    return d
     # TODO do more handling!
 
 
@@ -23,6 +19,9 @@ def mavg(timestamps, values, window):
 
 
 def plot_timestamped(timestamps, values, ratio=None, marker='o', timezone=None):
+    timestamps, values = lzip(*((t, v) for t, v in zip(timestamps, values) if v is not None))
+    # TODO report of filtered values?
+
     tss = lmap(parse_timestamp, timestamps)
     tz = None
     if timezone is not None:
@@ -30,6 +29,8 @@ def plot_timestamped(timestamps, values, ratio=None, marker='o', timezone=None):
     else:
         tz = pytz.utc
     tss = lmap(lambda d: d.astimezone(tz) if d.tzinfo is not None else d.replace(tzinfo=tz), tss)
+
+    assert_increasing(tss)
 
     mavg5 = mavg(tss, values, timedelta(5))
     mavg14 = mavg(tss, values, timedelta(14))
