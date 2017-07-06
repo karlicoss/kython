@@ -1,22 +1,17 @@
-from itertools import groupby
-
 from datetime import datetime, timedelta
 from dateutil.parser import parse as __parse_date
 import pytz
 
+from itertools import groupby
 import json
 from json import load as json_load, loads as json_loads
-
+from enum import Enum
 import logging
-
 import os
 from os.path import isfile
-
-import sys
-
 from pprint import pprint
-
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional
+import sys
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -57,9 +52,25 @@ def assert_increasing(l: List[T]):
         if a > b:
             raise AssertionError("Expected {} < {}".format(a, b))
 
+# TODO kython
+def enum_fields(enum_cls) -> List:
+    return list(enum_cls._fields)
 
 def lmap(f: Callable[[A], B], l: Iterable[A]) -> List[B]:
     return [f(i) for i in l]
+
+
+def filter_only(p: Callable[[A], bool], l: Iterable[A]) -> A:
+    values = [v for v in l if p(v)]
+    assert len(values) == 1
+    return values[0]
+
+
+def concat(*lists): # TODO kython
+    res = []
+    for l in lists:
+        res.extend(l)
+    return res
 
 
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
@@ -78,6 +89,12 @@ def chunks(l: List[T], n: int):
 
 def json_dumps(fo, j):
     json.dump(j, fo, indent=4, sort_keys=True, ensure_ascii=False)
+
+
+# TODO atomic_write
+
+def enum_fields(enum_cls) -> List:
+    return list(enum_cls._fields)
 
 
 def setup_logging(level=logging.DEBUG):

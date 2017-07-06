@@ -11,7 +11,9 @@ class EnhancedRtm:
     def getTaskByName(self, name: str):
         res = self.api.rtm.tasks.getList(filter=f'name:"{name}"')
         [tlist] = list(res.tasks)
-        [task] = [t for t in tlist if t.name == name]
+        tname = [t for t in tlist if t.name == name]
+        # TODO weird... but looks necessary if you were messing with repetition at some point
+        task = max(tname, key=lambda t: t.modified)
         return task
 
     def addTask_(self, description: str, parent_id: str=None):
