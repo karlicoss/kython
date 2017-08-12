@@ -11,7 +11,7 @@ import os
 from os.path import isfile
 from pprint import pprint
 import sys
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -24,14 +24,17 @@ _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
 def debug(s):
     sys.stderr.write(s + "\n")
 
-def parse_date(s):
+def parse_date(s, dayfirst=True, yearfirst=False):
+    if dayfirst and yearfirst:
+        raise RuntimeError("dayfirst and yearfirst can't both be set to True")
+
     RTM_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
     try:
         return datetime.strptime(s, RTM_FORMAT)
     except ValueError as e:
         # ok, carry on and use smart parser
         pass
-    return __parse_date(s, dayfirst=True)
+    return __parse_date(s, dayfirst=dayfirst, yearfirst=yearfirst, fuzzy=True) # TODO not sure about fuzzy..
     # TODO FIXME ok gonna need something smarter...
     # RTM dates are interpreted weirdly.
     # Maybe, hardcode rtm format and let other be interpreted with dateparser
@@ -57,16 +60,18 @@ def enum_fields(enum_cls) -> List:
     return list(enum_cls._fields)
 
 def lmap(f: Callable[[A], B], l: Iterable[A]) -> List[B]:
-    return [f(i) for i in l]
+    return list(map(f, l))
 
+def lfilter(f: Callable[[A], bool], l: Iterable[A]) -> List[A]:
+    return list(filter(f, l))
 
 def filter_only(p: Callable[[A], bool], l: Iterable[A]) -> A:
-    values = [v for v in l if p(v)]
+    values = lfilter(p, l)
     assert len(values) == 1
     return values[0]
 
 
-def concat(*lists): # TODO kython
+def concat(*lists):
     res = []
     for l in lists:
         res.extend(l)
@@ -92,10 +97,6 @@ def json_dumps(fo, j):
 
 
 # TODO atomic_write
-
-def enum_fields(enum_cls) -> List:
-    return list(enum_cls._fields)
-
 
 def setup_logging(level=logging.DEBUG):
     if _KYTHON_LOGLEVEL_VAR in os.environ:

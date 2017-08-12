@@ -1,11 +1,16 @@
 import matplotlib.pyplot as plt # type: ignore
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 from kython import *
 
 
-def parse_timestamp(ts: str) -> Optional[datetime]: # TODO return??
-    d = parse_date(ts)
-    return d
+def parse_timestamp(ts) -> Optional[datetime]: # TODO return??
+    if isinstance(ts, datetime):
+        return ts
+    elif isinstance(ts, str):
+        return parse_date(ts)
+    else:
+        raise RuntimeError("Unexpected class: " + str(type(ts)))
     # TODO do more handling!
 
 
@@ -18,7 +23,17 @@ def mavg(timestamps, values, window):
     return [avg(ts - window, ts) for ts in timestamps]
 
 
-def plot_timestamped(timestamps, values, ratio=None, marker='o', timezone=None):
+def plot_timestamped(
+        timestamps,
+        values,
+        ratio=None,
+        marker='o',
+        timezone=None,
+        mavgs=[(5, 'blue'), (14, 'green')],
+        ytick_size=None,
+        ylimits=None,
+        figure=None,
+):
     timestamps, values = lzip(*((t, v) for t, v in zip(timestamps, values) if v is not None))
     # TODO report of filtered values?
 
@@ -32,16 +47,28 @@ def plot_timestamped(timestamps, values, ratio=None, marker='o', timezone=None):
 
     assert_increasing(tss)
 
-    mavg5 = mavg(tss, values, timedelta(5))
-    mavg14 = mavg(tss, values, timedelta(14))
+    mavgsc = [(mavg(tss, values, timedelta(m)), c) for m, c in mavgs]
 
-    fig = plt.figure()
+    fig: plt.Figure
+    if figure is None:
+        fig = plt.figure()
+    else:
+        fig = plt.figure(figure)
 
     if ratio is not None:
         fig.set_size_inches(ratio)
 
     axes = fig.add_subplot(1,1,1)
+
+    if ytick_size is not None:
+        major_loc = MultipleLocator(ytick_size)
+        axes.yaxis.set_major_locator(major_loc)
+
+    if ylimits is not None:
+        axes.set_ylim(ylimits)
+
+
     axes.plot(tss, values, marker=marker, color='red')
-    axes.plot(tss, mavg5 , marker=marker, color='blue')
-    axes.plot(tss, mavg14, marker=marker, color='green')
+    for mv, c in mavgsc:
+        axes.plot(tss, mv, marker=marker, color=c)
     return fig
