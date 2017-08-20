@@ -96,6 +96,10 @@ def json_dumps(fo, j):
     json.dump(j, fo, indent=4, sort_keys=True, ensure_ascii=False)
 
 
+def src_relative(src_file: str, path: str):
+    return os.path.join(os.path.dirname(os.path.abspath(src_file)), path)
+
+
 # TODO atomic_write
 
 def setup_logging(level=logging.DEBUG):
