@@ -19,6 +19,14 @@ T = TypeVar('T')
 K = TypeVar('K')
 
 
+import abc
+class Comparable(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __lt__(self, other: T) -> bool: pass
+    @abc.abstractmethod
+    def __gt__(self, other: T) -> bool: pass
+
+
 _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
 
 def debug(s):
@@ -72,7 +80,8 @@ def lzip(*iters):
     return list(zip(*iters))
 
 
-def assert_increasing(l: List[T]):
+TT = TypeVar('TT', bound=Comparable)
+def assert_increasing(l: List[TT]):
     for a, b in zip(l, l[1:]):
         if a > b:
             raise AssertionError("Expected {} < {}".format(a, b))

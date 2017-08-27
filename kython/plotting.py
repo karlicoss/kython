@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt # type: ignore
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter # type: ignore
 
 from kython import *
 
