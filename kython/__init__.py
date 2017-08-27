@@ -11,7 +11,7 @@ import os
 from os.path import isfile
 from pprint import pprint
 import sys
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -24,7 +24,7 @@ _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
 def debug(s):
     sys.stderr.write(s + "\n")
 
-def parse_date(s, dayfirst=True, yearfirst=False):
+def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     if dayfirst and yearfirst:
         raise RuntimeError("dayfirst and yearfirst can't both be set to True")
 
@@ -38,6 +38,28 @@ def parse_date(s, dayfirst=True, yearfirst=False):
     # TODO FIXME ok gonna need something smarter...
     # RTM dates are interpreted weirdly.
     # Maybe, hardcode rtm format and let other be interpreted with dateparser
+
+
+def parse_timestamp(ts) -> Optional[datetime]: # TODO return??
+    if isinstance(ts, datetime):
+        return ts
+    elif isinstance(ts, str):
+        return parse_date(ts)
+    else:
+        raise RuntimeError("Unexpected class: " + str(type(ts)))
+    # TODO do more handling!
+
+
+def mavg(timestamps: List[datetime], values: List[T], window: Union[timedelta, int]) -> List[Tuple[datetime, T]]:
+    if isinstance(window, int):
+        window = timedelta(window)
+    # TODO make more efficient
+    def avg(fr, to):
+        res = [v for t, v in zip(timestamps, values) if fr <= t <= to]
+        # TODO zero len
+        return sum(res) / len(res)
+    return [(ts, avg(ts - window, ts)) for ts in timestamps]
+
 
 def TODO():
     raise RuntimeError("TODO")

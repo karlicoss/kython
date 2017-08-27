@@ -4,25 +4,6 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from kython import *
 
 
-def parse_timestamp(ts) -> Optional[datetime]: # TODO return??
-    if isinstance(ts, datetime):
-        return ts
-    elif isinstance(ts, str):
-        return parse_date(ts)
-    else:
-        raise RuntimeError("Unexpected class: " + str(type(ts)))
-    # TODO do more handling!
-
-
-def mavg(timestamps, values, window):
-    # TODO make more efficient
-    def avg(fr, to):
-        res = [v for t, v in zip(timestamps, values) if fr <= t <= to]
-        # TODO zero len
-        return sum(res) / len(res)
-    return [avg(ts - window, ts) for ts in timestamps]
-
-
 def plot_timestamped(
         timestamps,
         values,
@@ -70,5 +51,5 @@ def plot_timestamped(
 
     axes.plot(tss, values, marker=marker, color='red')
     for mv, c in mavgsc:
-        axes.plot(tss, mv, marker=marker, color=c)
+        axes.plot([m[0] for m in mv], [m[1] for m in mv], marker=marker, color=c)
     return fig
