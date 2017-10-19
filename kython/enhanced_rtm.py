@@ -1,3 +1,4 @@
+from kython import chunks
 from rtmapi import Rtm # type: ignore
 
 
@@ -33,7 +34,15 @@ class EnhancedRtm:
     def addTask(self, description: str, parent_id: str=None) -> str:
         return self.addTask_(description, parent_id=parent_id).list.taskseries.task.id
 
-    def addNote(self, task, text: str, title=""):
+    # since RTM api uses GET requests (and apparently, POST is broken)
+    # if your note is too long, the requests will fail :(
+    # enable long_note_hack to split it into multiple notes
+    def addNote(self, task, text: str, title="", long_note_hack=False):
+        if long_note_hack:
+            # reversed so they appear in order in RTM
+            for ch in reversed(list(chunks(text, 700))): # 700 is kinda made up..
+                self.addNote(task, ch, title=title, long_note_hack=False)
+            return
         lid = task.list.id
         tsid = task.list.taskseries.id
         tid = task.list.taskseries.task.id

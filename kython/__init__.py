@@ -36,16 +36,22 @@ def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     if dayfirst and yearfirst:
         raise RuntimeError("dayfirst and yearfirst can't both be set to True")
 
-    RTM_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-    try:
-        return datetime.strptime(s, RTM_FORMAT)
-    except ValueError as e:
-        # ok, carry on and use smart parser
-        pass
+    CUSTOM = [
+        "%Y-%m-%dT%H:%M:%SZ", # RTM
+    ]
+    for fmt in CUSTOM:
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError as e:
+            # ok, carry on and use smart parser
+            pass
+
     return __parse_date(s, dayfirst=dayfirst, yearfirst=yearfirst, fuzzy=True) # TODO not sure about fuzzy..
     # TODO FIXME ok gonna need something smarter...
     # RTM dates are interpreted weirdly.
     # Maybe, hardcode rtm format and let other be interpreted with dateparser
+
+parse_datetime = parse_date
 
 
 def parse_timestamp(ts) -> Optional[datetime]: # TODO return??
@@ -131,7 +137,21 @@ def src_relative(src_file: str, path: str):
     return os.path.join(os.path.dirname(os.path.abspath(src_file)), path)
 
 
+def get_logzero(*args, **kwargs):
+    import logzero # type: ignore
+    # ugh, apparently if you get one instance with formatter and another without specifying it, you will end up with default format :(
+    formatter = logzero.LogFormatter(
+        fmt='%(color)s[%(levelname)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+    )
+    return logzero.setup_logger(
+        *args,
+        **kwargs,
+        formatter=formatter,
+    )
+
+
 # TODO atomic_write
+COLOREDLOGGER_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
 
 def setup_logging(level=logging.DEBUG):
     if _KYTHON_LOGLEVEL_VAR in os.environ:
@@ -140,7 +160,7 @@ def setup_logging(level=logging.DEBUG):
     logging.basicConfig(level=level)
     try:
         import coloredlogs # type: ignore
-        coloredlogs.install(fmt="%(asctime)s [%(name)s] %(levelname)s %(message)s")
+        coloredlogs.install(fmt=COLOREDLOGGER_FORMAT)
         coloredlogs.set_level(level)
     except ImportError as e:
         if e.name == 'coloredlogs':
@@ -149,3 +169,5 @@ def setup_logging(level=logging.DEBUG):
         else:
             raise e
     logging.getLogger('requests').setLevel(logging.CRITICAL)
+
+
