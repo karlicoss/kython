@@ -18,6 +18,10 @@ B = TypeVar('B')
 T = TypeVar('T')
 K = TypeVar('K')
 
+JSONType = Union[
+    Dict[str, Any],
+    List[Any],
+]
 
 import abc
 class Comparable(metaclass=abc.ABCMeta):
@@ -31,6 +35,21 @@ _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
 
 def debug(s):
     sys.stderr.write(s + "\n")
+
+def get_wifi_name() -> Optional[str]:
+    from subprocess import check_output
+    import re
+    # ugh, occasionally iwgetid would just return error code 255 despite connection being active in NM :(
+    # output = check_output(['/sbin/iwgetid', '-r']).decode()
+    output = check_output(['nmcli', '-t']).decode()
+    matches = re.findall('connected to (.*)', output)
+    if len(matches) == 0:
+        return None
+    if len(matches) > 1:
+        raise RuntimeError("Can't figure out which wifi is connected. Output: " + output)
+    [name] = matches
+    name = name.strip() # just in case
+    return name
 
 def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     if dayfirst and yearfirst:
@@ -171,3 +190,6 @@ def setup_logging(level=logging.DEBUG):
     logging.getLogger('requests').setLevel(logging.CRITICAL)
 
 
+def atomic_write(fname: str, mode: str, overwrite=True):
+    import atomicwrites
+    return atomicwrites.atomic_write(fname, overwrite=overwrite, mode=mode)
