@@ -37,11 +37,14 @@ def debug(s):
     sys.stderr.write(s + "\n")
 
 def get_wifi_name() -> Optional[str]:
-    from subprocess import check_output
+    import subprocess
     import re
     # ugh, occasionally iwgetid would just return error code 255 despite connection being active in NM :(
     # output = check_output(['/sbin/iwgetid', '-r']).decode()
-    output = check_output(['nmcli', '-t']).decode()
+    proc = subprocess.run(['nmcli', '-t'], stdout=subprocess.PIPE)
+    if proc.returncode != 0:
+        return None
+    output = proc.stdout.decode()
     matches = re.findall('connected to (.*)', output)
     if len(matches) == 0:
         return None
