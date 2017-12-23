@@ -36,7 +36,7 @@ _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
 def debug(s):
     sys.stderr.write(s + "\n")
 
-def get_wifi_name() -> Optional[str]:
+def get_networks() -> Iterable[str]:
     import subprocess
     import re
     # ugh, occasionally iwgetid would just return error code 255 despite connection being active in NM :(
@@ -46,13 +46,7 @@ def get_wifi_name() -> Optional[str]:
         return None
     output = proc.stdout.decode()
     matches = re.findall('connected to (.*)', output)
-    if len(matches) == 0:
-        return None
-    if len(matches) > 1:
-        raise RuntimeError("Can't figure out which wifi is connected. Output: " + output)
-    [name] = matches
-    name = name.strip() # just in case
-    return name
+    return set(name.strip() for name in matches)
 
 def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     if dayfirst and yearfirst:
@@ -63,7 +57,8 @@ def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     ]
     for fmt in CUSTOM:
         try:
-            return datetime.strptime(s, fmt)
+            # not sure why python can't detect it's utc..
+            return datetime.strptime(s, fmt).replace(tzinfo=pytz.UTC)
         except ValueError as e:
             # ok, carry on and use smart parser
             pass
@@ -136,6 +131,7 @@ def concat(*lists):
         res.extend(l)
     return res
 
+lconcat = concat
 
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
     res = {} # type: Dict[K, List[T]]
@@ -172,7 +168,6 @@ def get_logzero(*args, **kwargs):
     )
 
 
-# TODO atomic_write
 COLOREDLOGGER_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
 
 def setup_logging(level=logging.DEBUG):
