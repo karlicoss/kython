@@ -133,6 +133,23 @@ def concat(*lists):
 
 lconcat = concat
 
+def lsorted(s: List[T]) -> List[T]:
+    return list(sorted(s))
+
+def fmap_maybe(fn: Callable[[T], K], o: Optional[T]) -> Optional[K]:
+    return None if o is None else fn(o)
+
+def map_value(f, d: Dict) -> Dict:
+    return {
+        k: f(v) for k, v in d.items()
+    }
+
+def filter_by_value(p, d: Dict) -> Dict:
+    return {
+        k: v for k, v in d.items() if p(v)
+    }
+
+
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
     res = {} # type: Dict[K, List[T]]
     for i in l:
@@ -159,7 +176,7 @@ def get_logzero(*args, **kwargs):
     import logzero # type: ignore
     # ugh, apparently if you get one instance with formatter and another without specifying it, you will end up with default format :(
     formatter = logzero.LogFormatter(
-        fmt='%(color)s[%(levelname)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+        fmt='%(color)s[%(levelname)s %(name)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
     )
     return logzero.setup_logger(
         *args,
