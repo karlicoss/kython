@@ -17,11 +17,24 @@ A = TypeVar('A')
 B = TypeVar('B')
 T = TypeVar('T')
 K = TypeVar('K')
+V = TypeVar('V')
+
+def make_dict(l: List[T], key: Callable[[T], K], value: Callable[[T], V]) -> Dict[K, V]:
+    res: Dict[K, V] = {}
+    for i in l:
+        k = key(i)
+        v = value(i)
+        assert k not in res, f"Duplicate key: {k}"
+        res[k] = v
+    return res
 
 JSONType = Union[
     Dict[str, Any],
     List[Any],
 ]
+
+def id_map(x):
+    return x
 
 import abc
 class Comparable(metaclass=abc.ABCMeta):
