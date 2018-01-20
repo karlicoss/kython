@@ -33,6 +33,8 @@ JSONType = Union[
     List[Any],
 ]
 
+AList = List[Any]
+
 def id_map(x):
     return x
 
@@ -172,6 +174,25 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
         res[kk] = lst
     return res
 
+def group_by_cmp(l, similar):
+    groups = []
+    group = None
+    for a in l:
+        if group is None:
+            group = [a]
+        else:
+            if not similar(group[-1], a):
+                groups.append(group)
+                group = []
+            group.append(a)
+
+    if len(group) > 0:
+        groups.append(group)
+    return groups
+
+
+def first(iterable):
+    return next(iter(iterable))
 
 def chunks(l: List[T], n: int):
     for i in range(0, len(l), n):
@@ -221,3 +242,19 @@ def setup_logging(level=logging.DEBUG):
 def atomic_write(fname: str, mode: str, overwrite=True):
     import atomicwrites
     return atomicwrites.atomic_write(fname, overwrite=overwrite, mode=mode)
+
+def elvis(*items):
+    for i in items:
+        if i:
+            return i
+
+def safe_get(d, *args, default=None):
+    for a in args:
+        if isinstance(d, dict) and a in d:
+            d = d[a]
+        elif hasattr(d, a):
+            d = getattr(d, a)
+        else:
+            return default
+    return d
+

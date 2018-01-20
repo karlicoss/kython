@@ -11,3 +11,6 @@ def src_relative(path: str) -> str:
 
 def home(path: str) -> str:
     return os.path.expanduser(os.path.join("~", path))
+
+def set_display() -> None:
+    os.environ['DISPLAY'] = ':0'
