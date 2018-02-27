@@ -1,27 +1,23 @@
-import requests
-
-
 def scrape(url: str):
+    import requests
     from bs4 import BeautifulSoup # type: ignore
     data = requests.get(url).text
     soup = BeautifulSoup(data, "html.parser")
     return soup
 
+def get_chrome_driver():
+    from selenium import webdriver # type: ignore
+    from selenium.webdriver.chrome.options import Options # type: ignore
+
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')  # Last I checked this was necessary.
+    return webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", chrome_options=options)
 
 def scrape_dynamic(url: str) -> str:
-    from selenium import webdriver # type: ignore
-    from selenium.webdriver.remote.webdriver import WebDriver # type: ignore
-    from selenium.webdriver.common.by import By # type: ignore
-    from selenium.webdriver.support.ui import WebDriverWait # type: ignore
-    from selenium.webdriver.support import expected_conditions as EC # type: ignore
+    driver = get_chrome_driver()
     try:
-        driver: WebDriver = webdriver.PhantomJS(executable_path="/L/soft/phantomjs-2.1.1-linux-x86_64/bin/phantomjs")
-        # driver: WebDriver = webdriver.Chrome(executable_path="/L/soft/chromedriver")
         driver.get(url)
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.ID, "nutrition"))
-        )
-        # driver.implicitly_wait(20)
         return driver.page_source
     finally:
         driver.quit()
