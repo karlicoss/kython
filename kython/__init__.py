@@ -11,7 +11,7 @@ import os
 from os.path import isfile
 from pprint import pprint
 import sys
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union, Iterator
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union, Iterator, Collection, Sequence
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -38,12 +38,13 @@ AList = List[Any]
 def id_map(x):
     return x
 
-import abc
-class Comparable(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def __lt__(self, other: T) -> bool: pass
-    @abc.abstractmethod
-    def __gt__(self, other: T) -> bool: pass
+from abc import abstractmethod, ABCMeta
+from typing_extensions import Protocol
+class Comparable(Protocol):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool: pass
+    @abstractmethod
+    def __gt__(self, other: Any) -> bool: pass
 
 
 _KYTHON_LOGLEVEL_VAR = "KYTHON_LOGLEVEL"
@@ -210,7 +211,7 @@ def numbers(from_=0) -> Iterator[int]:
 def first(iterable):
     return next(iter(iterable))
 
-def chunks(l: List[T], n: int):
+def chunks(l: Sequence[T], n: int): # no return type, fucking mypy can't handle str
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
