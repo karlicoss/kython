@@ -11,7 +11,7 @@ import os
 from os.path import isfile
 from pprint import pprint
 import sys
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union, Iterator
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -174,22 +174,38 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
         res[kk] = lst
     return res
 
-def group_by_cmp(l, similar):
+# TODO not sure, maybe do something smarter?
+def group_by_cmp(l, similar, dist=20):
+    handled = [False for _ in l]
     groups = []
-    group = None
-    for a in l:
-        if group is None:
-            group = [a]
-        else:
-            if not similar(group[-1], a):
-                groups.append(group)
-                group = []
-            group.append(a)
+    group = []
 
-    if len(group) > 0:
-        groups.append(group)
+    def add_to_group(i):
+        handled[i] = True
+        group.append(l[i])
+
+    for i in range(len(l)):
+        if handled[i]:
+            continue
+
+        last = i
+        cur = i
+        while cur < len(l) and cur - last < dist:
+            if similar(l[last], l[cur]):
+                add_to_group(cur)
+                last = cur
+            cur += 1
+        if len(group) > 0:
+            groups.append(group)
+            group = []
     return groups
 
+
+def numbers(from_=0) -> Iterator[int]:
+    i = from_
+    while True:
+        yield i
+        i += 1
 
 def first(iterable):
     return next(iter(iterable))
@@ -258,3 +274,14 @@ def safe_get(d, *args, default=None):
             return default
     return d
 
+
+import functools
+
+def memoize(f):
+    cache = None
+    def helper():
+        nonlocal cache
+        if not cache:
+            cache = f()
+        return cache
+    return helper

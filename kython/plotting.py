@@ -7,14 +7,16 @@ from kython import *
 def plot_timestamped(
         timestamps,
         values,
+        plabels=None,
         ratio=None,
-        marker='o',
         timezone=None,
         mavgs=[(5, 'blue'), (14, 'green')],
         ytick_size=None,
         ylimits=None,
-        figure=None,
-):
+        figure:plt.Figure=None,
+        axes:plt.Axes=None,
+        **rest
+) -> plt.Figure:
     timestamps, values = lzip(*((t, v) for t, v in zip(timestamps, values) if v is not None))
     # TODO report of filtered values?
 
@@ -30,16 +32,15 @@ def plot_timestamped(
 
     mavgsc = [(mavg(tss, values, timedelta(m)), c) for m, c in mavgs]
 
-    fig: plt.Figure
-    if figure is None:
+    fig = figure
+    if fig is None:
         fig = plt.figure()
-    else:
-        fig = plt.figure(figure)
 
     if ratio is not None:
         fig.set_size_inches(ratio)
 
-    axes = fig.add_subplot(1,1,1)
+    if axes is None:
+        axes = fig.add_subplot(1,1,1)
 
     if ytick_size is not None:
         major_loc = MultipleLocator(ytick_size)
@@ -49,7 +50,11 @@ def plot_timestamped(
         axes.set_ylim(ylimits)
 
 
-    axes.plot(tss, values, marker=marker, color='red')
+    axes.plot(tss, values, color='red', **rest)
+    # TODO ??
+    if plabels:
+        for t, v, l in zip(tss, values, plabels):
+            axes.annotate(l, xy=(t, v))
     for mv, c in mavgsc:
-        axes.plot([m[0] for m in mv], [m[1] for m in mv], marker=marker, color=c)
+        axes.plot([m[0] for m in mv], [m[1] for m in mv], **rest, color=c) # TODO hmm
     return fig
