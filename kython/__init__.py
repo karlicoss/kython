@@ -149,7 +149,7 @@ def concat(*lists):
 
 lconcat = concat
 
-def lsorted(s: List[T]) -> List[T]:
+def lsorted(s: Collection[T]) -> List[T]:
     return list(sorted(s))
 
 def fmap_maybe(fn: Callable[[T], K], o: Optional[T]) -> Optional[K]:
