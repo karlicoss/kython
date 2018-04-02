@@ -1,6 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.parser import parse as __parse_date
 import pytz
+
+import re
 
 from itertools import groupby
 import json
@@ -18,6 +20,13 @@ B = TypeVar('B')
 T = TypeVar('T')
 K = TypeVar('K')
 V = TypeVar('V')
+
+NUMERIC_CONST_PATTERN =  '[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
+
+def listdir_abs(d: str):
+    from os.path import join
+    from os import listdir
+    return [join(d, n) for n in listdir(d)]
 
 def make_dict(l: List[T], key: Callable[[T], K], value: Callable[[T], V]) -> Dict[K, V]:
     res: Dict[K, V] = {}
@@ -64,6 +73,16 @@ def get_networks() -> Iterable[str]:
     matches = re.findall('connected to (.*)', output)
     return set(name.strip() for name in matches)
 
+def parse_date_new(s) -> date:
+    if isinstance(s, date):
+        return s
+    if isinstance(s, datetime):
+        return s.date()
+
+    import dateparser # type: ignore
+    return dateparser.parse(s).date()
+
+# TODO ugh, should return date, not datetime...
 def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     if dayfirst and yearfirst:
         raise RuntimeError("dayfirst and yearfirst can't both be set to True")
@@ -108,10 +127,12 @@ def mavg(timestamps: List[datetime], values: List[T], window: Union[timedelta, i
     return [(ts, avg(ts - window, ts)) for ts in timestamps]
 
 
-def TODO():
+from typing_extensions import NoReturn
+
+def TODO() -> NoReturn:
     raise RuntimeError("TODO")
 
-def IMPOSSIBLE(value = None):
+def IMPOSSIBLE(value = None) -> NoReturn:
     raise AssertionError("Can't happen! " + str(value) if value is not None else '')
 
 
@@ -166,6 +187,7 @@ def filter_by_value(p, d: Dict) -> Dict:
     }
 
 
+# TODO order might be not great.. swap params..
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
     res = {} # type: Dict[K, List[T]]
     for i in l:

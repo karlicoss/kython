@@ -1,6 +1,5 @@
+from datetime import datetime
 from typing import List, Dict
-
-from PyOrgMode import PyOrgMode # type: ignore
 
 # TODO do something more meaningful..
 def _read_org_table(table) -> List[Dict[str, str]]:
@@ -16,15 +15,17 @@ def _read_org_table(table) -> List[Dict[str, str]]:
     return res
 
 def extract_org_table(fname: str, pos: int) -> List[Dict[str, str]]:
+    from PyOrgMode import PyOrgMode # type: ignore
     base = PyOrgMode.OrgDataStructure()
     # TODO assert increasing??
     base.load_from_file(fname)
-    tbl = base.root.content[pos]
+    root: PyOrgMode.OrgNode.Element = base.root
+    tbl = root.content[pos]
     assert isinstance(tbl, PyOrgMode.OrgTable.Element)
     return _read_org_table(tbl)
 
 
-from . import parse_timestamp
+from kython import parse_timestamp
 import pytz
 
 # not sure if belogs here...
@@ -37,3 +38,13 @@ def parse_london_date(s):
 # london_tz = datetime.astimezone(tzoffset(None, 3600))
         d = pytz.utc.localize(d)
     return d
+
+
+def date2org(t: datetime) -> str:
+    return t.strftime("%Y-%m-%d %a")
+
+def datetime2orgtime(t: datetime) -> str:
+    return t.strftime("%H:%M")
+
+def datetime2org(t: datetime) -> str:
+    return date2org(t) + " " + datetime2orgtime(t)

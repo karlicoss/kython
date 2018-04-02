@@ -15,6 +15,7 @@ def plot_timestamped(
         ylimits=None,
         figure:plt.Figure=None,
         axes:plt.Axes=None,
+        noplot:bool=False,
         **rest
 ) -> plt.Figure:
     timestamps, values = lzip(*((t, v) for t, v in zip(timestamps, values) if v is not None))
@@ -49,12 +50,24 @@ def plot_timestamped(
     if ylimits is not None:
         axes.set_ylim(ylimits)
 
+    def dflt(d, **kwargs):
+        dd = {k: v for k, v in d.items()}
+        for k, v in kwargs.items():
+            if k not in dd:
+                dd[k] = v
+        return dd
 
-    axes.plot(tss, values, color='red', **rest)
+    def patch(d, **kwargs):
+        dd = {k: v for k, v in d.items()}
+        dd.update(kwargs)
+        return dd
+
+    if not noplot:
+        axes.plot(tss, values, **dflt(rest, color='red'))
     # TODO ??
     if plabels:
         for t, v, l in zip(tss, values, plabels):
             axes.annotate(l, xy=(t, v))
     for mv, c in mavgsc:
-        axes.plot([m[0] for m in mv], [m[1] for m in mv], **rest, color=c) # TODO hmm
+        axes.plot([m[0] for m in mv], [m[1] for m in mv], **patch(rest, color=c)) # TODO hmm
     return fig
