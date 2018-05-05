@@ -19,7 +19,7 @@ def extract_org_table(fname: str, pos: int) -> List[Dict[str, str]]:
     base = PyOrgMode.OrgDataStructure()
     # TODO assert increasing??
     base.load_from_file(fname)
-    root: PyOrgMode.OrgNode.Element = base.root
+    root = base.root # type: PyOrgMode.OrgNode.Element
     tbl = root.content[pos]
     assert isinstance(tbl, PyOrgMode.OrgTable.Element)
     return _read_org_table(tbl)
@@ -39,6 +39,8 @@ def parse_london_date(s):
         d = pytz.utc.localize(d)
     return d
 
+def parse_org_date(s: str):
+    return datetime.strptime(s, "%Y-%m-%d %a %H:%M")
 
 def date2org(t: datetime) -> str:
     return t.strftime("%Y-%m-%d %a")

@@ -3,6 +3,7 @@ import time
 from kython import numbers
 
 
+# we should only log as error if ran out of attempts
 def backoff_network_errors(method, logger, *args, **kwargs):
     if logger is None:
         class DummyLogger:
