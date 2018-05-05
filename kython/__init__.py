@@ -153,8 +153,18 @@ def enum_fields(enum_cls) -> List:
 def lmap(f: Callable[[A], B], l: Iterable[A]) -> List[B]:
     return list(map(f, l))
 
-def lfilter(f: Callable[[A], bool], l: Iterable[A]) -> List[A]:
+Predicate = Callable[[A], bool]
+def lfilter(f: Predicate, l: Iterable[A]) -> List[A]:
     return list(filter(f, l))
+
+def sfilter(f: Predicate, l: Iterable[A]) -> Set[A]:
+    res: Set[A] = set()
+    for i in l:
+        if f(i):
+            if i in res:
+                raise RuntimeError(f"Duplicate element {i}")
+            res.add(i)
+    return res
 
 def filter_only(p: Callable[[A], bool], l: Iterable[A]) -> A:
     values = lfilter(p, l)
@@ -169,6 +179,9 @@ def concat(*lists):
     return res
 
 lconcat = concat
+
+def flatten(lists):
+    return lconcat(*lists)
 
 def lsorted(s: Collection[T]) -> List[T]:
     return list(sorted(s))
@@ -237,9 +250,11 @@ def chunks(l: Sequence[T], n: int): # no return type, fucking mypy can't handle 
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
-def json_dumps(fo, j):
+def json_dump_pretty(fo, j):
     json.dump(j, fo, indent=4, sort_keys=True, ensure_ascii=False)
 
+def json_dumps(fo, j):
+    json_dump_pretty(fo, j)
 
 def src_relative(src_file: str, path: str):
     return os.path.join(os.path.dirname(os.path.abspath(src_file)), path)
