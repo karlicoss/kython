@@ -1,8 +1,6 @@
 from collections import OrderedDict
 
 from datetime import datetime, timedelta, date
-from dateutil.parser import parse as __parse_date
-import pytz
 
 import re
 
@@ -96,6 +94,8 @@ def parse_date_new(s) -> date:
 
 # TODO ugh, should return date, not datetime...
 def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
+    from dateutil.parser import parse as __parse_date
+    import pytz
     if dayfirst and yearfirst:
         raise RuntimeError("dayfirst and yearfirst can't both be set to True")
 

@@ -2,9 +2,11 @@ def trigger_run(cmd: str):
     """
        trigger program run, for instance, to create config
     """
+    import os
+    import signal
     import subprocess
     import time
-    p = subprocess.Popen(cmd, shell=True)
+    p = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
     time.sleep(2)
-    p.kill()
+    os.killpg(os.getpgid(p.pid), signal.SIGTERM) # in case it forks
     time.sleep(1) # wait till it dies
