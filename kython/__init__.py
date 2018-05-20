@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from datetime import datetime, timedelta, date
 from dateutil.parser import parse as __parse_date
 import pytz
@@ -22,6 +24,16 @@ K = TypeVar('K')
 V = TypeVar('V')
 
 NUMERIC_CONST_PATTERN =  '[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
+
+def import_relative(___name___: str, mname: str):
+    import importlib
+    parent_name = '.'.join(___name___.split('.')[:-1])
+    module = importlib.import_module(mname, parent_name)
+    return module
+
+def module_items(module) -> "OrderedDict[str, Any]":
+    return OrderedDict((name, getattr(module, name)) for name in dir(module))
+
 
 def listdir_abs(d: str):
     from os.path import join
@@ -301,6 +313,8 @@ def elvis(*items):
     for i in items:
         if i:
             return i
+    else:
+        return None
 
 def safe_get(d, *args, default=None):
     for a in args:
