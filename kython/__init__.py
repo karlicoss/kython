@@ -272,6 +272,19 @@ def src_relative(src_file: str, path: str):
     return os.path.join(os.path.dirname(os.path.abspath(src_file)), path)
 
 
+def setup_logzero(logger, *args, **kwargs):
+    import logzero # type: ignore
+    formatter = logzero.LogFormatter(
+        fmt='%(color)s[%(levelname)s %(name)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+    )
+    logzero.setup_logger(
+        *args,
+        **kwargs,
+        name=logger.name,
+        formatter=formatter,
+    )
+
+
 def get_logzero(*args, **kwargs):
     import logzero # type: ignore
     # ugh, apparently if you get one instance with formatter and another without specifying it, you will end up with default format :(
@@ -287,6 +300,7 @@ def get_logzero(*args, **kwargs):
 
 COLOREDLOGGER_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
 
+# TODO deprecate...
 def setup_logging(level=logging.DEBUG):
     if _KYTHON_LOGLEVEL_VAR in os.environ:
         level = getattr(logging, os.environ[_KYTHON_LOGLEVEL_VAR]) # TODO ugh a bit ugly, but whatever..
