@@ -1,9 +1,16 @@
 # TODO move to kython?
 def setup_logzero(logger, logfile: str = None, level = None):
     import logging
-    # TODO check if coloredlogs available at all
-    import logzero # type: ignore
-    FMT='%(color)s[%(levelname)s %(name)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+
+    stream_fmt = None
+    file_fmt = None
+    try:
+        import logzero # type: ignore
+        FMT='%(color)s[%(levelname)s %(name)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+        stream_fmt = logzero.LogFormatter(fmt=FMT, color=True)
+        file_fmt = logzero.LogFormatter(fmt=FMT, color=False)
+    except ImportError:
+        logging.warn("logzero is not available! Fallback to default")
 
     # ugh.. https://stackoverflow.com/a/21127526/706389
     logger.propagate = False
@@ -13,12 +20,14 @@ def setup_logzero(logger, logfile: str = None, level = None):
 
     # TODO  datefmt='%Y-%m-%d %H:%M:%S'
     shandler = logging.StreamHandler()
-    shandler.setFormatter(logzero.LogFormatter(fmt=FMT, color=True))
+    if stream_fmt is not None:
+        shandler.setFormatter(stream_fmt)
     logger.addHandler(shandler)
 
     if logfile is not None:
         fhandler = logging.FileHandler(logfile) # TODO rewrite? not sure ...
-        fhandler.setFormatter(logzero.LogFormatter(fmt=FMT, color=False))
+        if file_fmt is not None:
+            fhandler.setFormatter(file_fmt)
         logger.addHandler(fhandler)
 
 
