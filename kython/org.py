@@ -19,7 +19,7 @@ def extract_org_table(fname: str, pos: int) -> List[Dict[str, str]]:
     base = PyOrgMode.OrgDataStructure()
     # TODO assert increasing??
     base.load_from_file(fname)
-    root = base.root # type: PyOrgMode.OrgNode.Element
+    root: PyOrgMode.OrgNode.Element = base.root # type: ignore
     tbl = root.content[pos]
     assert isinstance(tbl, PyOrgMode.OrgTable.Element)
     return _read_org_table(tbl)

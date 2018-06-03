@@ -1,4 +1,5 @@
-from kython import chunks
+from .misc import chunks
+# pylint: disable=import-error
 from rtmapi import Rtm # type: ignore
 
 

@@ -1,11 +1,14 @@
 import matplotlib.pyplot as plt # type: ignore
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter # type: ignore
 
-from kython import *
+from .misc import lzip, lmap, assert_increasing, parse_timestamp, TODO, mavg
 
+from datetime import timedelta, datetime
+import pytz
+from typing import Any, List
 
 def plot_timestamped(
-        timestamps,
+        timestamps: List[str],
         values,
         plabels=None,
         ratio=None,
@@ -21,12 +24,10 @@ def plot_timestamped(
     timestamps, values = lzip(*((t, v) for t, v in zip(timestamps, values) if v is not None))
     # TODO report of filtered values?
 
-    tss = lmap(parse_timestamp, timestamps)
-    tz = None
+    tss: List[datetime] = lmap(parse_timestamp, timestamps)
     if timezone is not None:
-        TODO()
-    else:
-        tz = pytz.utc
+        raise RuntimeError("TODO") # ???
+    tz = pytz.utc
     tss = lmap(lambda d: d.astimezone(tz) if d.tzinfo is not None else d.replace(tzinfo=tz), tss)
 
     assert_increasing(tss)
