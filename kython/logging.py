@@ -5,11 +5,11 @@ def setup_logzero(logger, logfile: str = None, level = None):
     stream_fmt = None
     file_fmt = None
     try:
-        import logzero # type: ignore
+        from logzero import LogFormatter # type: ignore
         FMT='%(color)s[%(levelname)s %(name)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
-        stream_fmt = logzero.LogFormatter(fmt=FMT, color=True)
-        file_fmt = logzero.LogFormatter(fmt=FMT, color=False)
-    except ImportError:
+        stream_fmt = LogFormatter(fmt=FMT, color=True)
+        file_fmt = LogFormatter(fmt=FMT, color=False)
+    except ImportError as e:
         logging.warn("logzero is not available! Fallback to default")
 
     # ugh.. https://stackoverflow.com/a/21127526/706389
