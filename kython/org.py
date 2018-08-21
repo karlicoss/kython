@@ -70,6 +70,7 @@ def datetime2org(t: datetime) -> str:
 
 class OrgNote:
     def __init__(self, node):
+        assert isinstance(node, PyOrgMode.OrgNode.Element)
         self.node = node
 
         # TODO collect OrgNodes recursively?
@@ -142,6 +143,9 @@ def load_org_file(fname: str) -> List[OrgNote]:
     import PyOrgMode
     ofile = PyOrgMode.OrgDataStructure()
     ofile.load_from_file(fname)
-    onotes = [OrgNote(x) for x in ofile.root.content] #  if isinstance(x, PyOrgMode.OrgNode.Element)]
-    # import ipdb; ipdb.set_trace()
+    cont = ofile.root.content # type: ignore
+
+    while len(cont) > 0 and isinstance(cont[0], str):
+        cont = cont[1:] # skip header and endlines after it
+    onotes = [OrgNote(x) for x in cont]
     return onotes
