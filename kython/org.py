@@ -51,7 +51,13 @@ def extract_org_datestr(s: str) -> Optional[str]:
         return match.group(0)
 
 def parse_org_date(s: str):
-    return datetime.strptime(s, "%Y-%m-%d %a %H:%M")
+    for fmt in ["%Y-%m-%d %a %H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%d"]:
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+    else:
+        raise RuntimeError(f"Bad date string {s}")
 
 def date2org(t: datetime) -> str:
     return t.strftime("%Y-%m-%d %a")
@@ -112,6 +118,11 @@ class OrgNote:
         return self.node.heading.strip()
 
     @property
+    def heading(self) -> str:
+        # TODO eh, strip off date string later?
+        return self.node.heading
+
+    @property
     def date(self) -> Optional[datetime]:
         created = self._get_props().get('CREATED', None)
         if created is None:
@@ -131,5 +142,6 @@ def load_org_file(fname: str) -> List[OrgNote]:
     import PyOrgMode
     ofile = PyOrgMode.OrgDataStructure()
     ofile.load_from_file(fname)
-    onotes = [OrgNote(x) for x in ofile.content] #  if isinstance(x, PyOrgMode.OrgNode.Element)]
+    onotes = [OrgNote(x) for x in ofile.root.content] #  if isinstance(x, PyOrgMode.OrgNode.Element)]
+    # import ipdb; ipdb.set_trace()
     return onotes
