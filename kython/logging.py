@@ -1,5 +1,8 @@
-# TODO move to kython?
-def setup_logzero(logger, logfile: str = None, level = None):
+def setup_logzero(logger, logfile: str = None, level = None, cronlevel = None):
+    if cronlevel is None:
+        cronlevel = level
+
+    import sys
     import logging
 
     stream_fmt = None
@@ -15,8 +18,9 @@ def setup_logzero(logger, logfile: str = None, level = None):
     # ugh.. https://stackoverflow.com/a/21127526/706389
     logger.propagate = False
 
-    if level is not None:
-        logger.setLevel(level)
+    lev = level if sys.stdout.isatty() else cronlevel
+    if lev is not None:
+        logger.setLevel(lev)
 
     # TODO  datefmt='%Y-%m-%d %H:%M:%S'
     shandler = logging.StreamHandler()

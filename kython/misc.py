@@ -38,7 +38,7 @@ def module_items(module) -> "OrderedDict[str, Any]":
 def listdir_abs(d: str):
     from os.path import join
     from os import listdir
-    return [join(d, n) for n in listdir(d)]
+    return [join(d, n) for n in sorted(listdir(d))]
 
 def make_dict(l: List[T], key: Callable[[T], K], value: Callable[[T], V]) -> Dict[K, V]:
     res: Dict[K, V] = {}
@@ -119,13 +119,15 @@ def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
 
 parse_datetime = parse_date
 
-DatetimeIsh = Union[str, datetime]
+DatetimeIsh = Union[datetime, str, int]
 
 def parse_timestamp(ts: DatetimeIsh) -> datetime: # TODO return??
     if isinstance(ts, datetime):
         return ts
     elif isinstance(ts, str):
         return parse_date(ts)
+    elif isinstance(ts, int):
+        return datetime.fromtimestamp(ts)
     else:
         raise RuntimeError("Unexpected class: " + str(type(ts)))
     # TODO do more handling!
