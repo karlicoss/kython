@@ -85,6 +85,9 @@ class OrgNote:
         #     return res
 
         # self.props = {h.name: h.value for h in helper(root)}
+    @lru_cache()
+    def _get_datestr(self) -> Optional[str]:
+        return extract_org_datestr(self.node.heading)
 
     @lru_cache()
     def _get_props(self) -> Dict[str, str]:
@@ -121,13 +124,17 @@ class OrgNote:
     @property
     def heading(self) -> str:
         # TODO eh, strip off date string later?
-        return self.node.heading
+        res = self.node.heading
+        ds = self._get_datestr()
+        if ds is not None:
+            res = res.replace(ds, '') # meh, but works?
+        return res
 
     @property
     def date(self) -> Optional[datetime]:
         created = self._get_props().get('CREATED', None)
         if created is None:
-            created = extract_org_datestr(self.node.heading)
+            created = self._get_datestr()
         if created is None:
             return None
         created = created[1:-1] # cut off square brackets
@@ -138,6 +145,9 @@ class OrgNote:
     def __str__(self):
         return f"{self.date} {self.name}"
 
+from typing import Iterator, Union
+def iter_org_file(fname: str) -> Iterator[Union[OrgNote, Exception]]:
+    pass
 
 def load_org_file(fname: str) -> List[OrgNote]:
     import PyOrgMode
