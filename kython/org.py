@@ -100,10 +100,22 @@ class OrgNote:
     @property
     def content(self) -> str:
         c = []
-        for ch in self.node.content:
-            if isinstance(ch, str):
-                c.append(ch)
-        return ' '.join(c)
+        def helper(n):
+            if isinstance(n, str):
+                c.append(n)
+            elif isinstance(n, list):
+                for x in n:
+                    helper(x)
+            elif hasattr(n, 'heading'):
+                c.append(getattr(n, 'heading'))
+            if hasattr(n, 'content'):
+                helper(getattr(n, 'content'))
+
+        # for ch in self.node.content:
+        #     if isinstance(ch, str):
+        #         c.append(ch)
+        helper(self.node.content)
+        return '\n'.join(c)
 
     @property
     def comment(self) -> str:
