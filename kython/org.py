@@ -1,10 +1,12 @@
-from datetime import datetime
-from typing import List, Dict, Optional, Any
+from datetime import datetime, date
+from typing import List, Dict, Optional, Any, Union
 from functools import lru_cache
 
 import pytz
 
 import PyOrgMode # type: ignore
+
+Dateish = Union[datetime, date]
 
 # TODO do something more meaningful..
 def _read_org_table(table) -> List[Dict[str, str]]:
@@ -50,10 +52,19 @@ def extract_org_datestr(s: str) -> Optional[str]:
     else:
         return match.group(0)
 
-def parse_org_date(s: str):
-    for fmt in ["%Y-%m-%d %a %H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%d"]:
+def parse_org_date(s: str) -> Dateish:
+    for fmt, cl in [
+            ("%Y-%m-%d %a %H:%M", datetime),
+            ("%Y-%m-%d %H:%M", datetime),
+            ("%Y-%m-%d %a", date),
+            ("%Y-%m-%d", date),
+    ]:
         try:
-            return datetime.strptime(s, fmt)
+            res = datetime.strptime(s, fmt)
+            if cl == date:
+                return res.date()
+            else:
+                return res
         except ValueError:
             continue
     else:
@@ -143,7 +154,7 @@ class OrgNote:
         return res
 
     @property
-    def date(self) -> Optional[datetime]:
+    def date(self) -> Optional[Dateish]:
         created = self._get_props().get('CREATED', None)
         if created is None:
             created = self._get_datestr()
@@ -151,8 +162,9 @@ class OrgNote:
             return None
         created = created[1:-1] # cut off square brackets
         # TODO maybe don't localize, use location provider..
-        TZ_LONDON = pytz.timezone('Europe/London')
-        return TZ_LONDON.localize(parse_org_date(created))
+        # TZ_LONDON = pytz.timezone('Europe/London')
+        # return TZ_LONDON.localize(parse_org_date(created))
+        return parse_org_date(created)
 
     def __str__(self):
         return f"{self.date} {self.name}"
