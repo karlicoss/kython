@@ -267,8 +267,26 @@ def chunks(l: Sequence[T], n: int): # no return type, fucking mypy can't handle 
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
-def json_dump_pretty(fo, j):
-    json.dump(j, fo, indent=4, sort_keys=True, ensure_ascii=False)
+def load_json_file(fname: str) -> JSONType:
+    bb: bytes
+    if fname.endswith('.xz'):
+        import lzma
+        with lzma.open(fname, 'r') as fo:
+            bb = fo.read()
+    else: # must be plaintext..
+        with open(fname, 'rb') as fo:
+            bb = fo.read()
+    return json.loads(bb, encoding='utf8')
+
+
+
+
+
+def json_dump_pretty(fo, j, indent=4):
+    json.dump(j, fo, indent=indent, sort_keys=True, ensure_ascii=False)
+
+def json_dumps_pretty(fo, j, indent=4):
+    return json.dumps(j, indent=indent, sort_keys=True, ensure_ascii=False)
 
 def json_dumps(fo, j):
     json_dump_pretty(fo, j)
