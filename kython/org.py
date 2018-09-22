@@ -2,7 +2,6 @@ from datetime import datetime, date
 from typing import List, Dict, Optional, Any, Union
 from functools import lru_cache
 
-import pytz
 
 import PyOrgMode # type: ignore
 
@@ -126,7 +125,7 @@ class OrgNote:
         #     if isinstance(ch, str):
         #         c.append(ch)
         helper(self.node.content)
-        return '\n'.join(c)
+        return ''.join(c) # newlines are handled by PyOrgMode...
 
     @property
     def comment(self) -> str:
@@ -160,14 +159,11 @@ class OrgNote:
             created = self._get_datestr()
         if created is None:
             return None
-        created = created[1:-1] # cut off square brackets
-        # TODO maybe don't localize, use location provider..
-        # TZ_LONDON = pytz.timezone('Europe/London')
-        # return TZ_LONDON.localize(parse_org_date(created))
+        created = created[1:-1].strip() # cut off square brackets
         return parse_org_date(created)
 
-    def __str__(self):
-        return f"{self.date} {self.name}"
+    def __repr__(self):
+        return f"OrgNote{{{self.date} {self.name}}}"
 
 from typing import Iterator, Union
 def iter_org_file(fname: str) -> Iterator[Union[OrgNote, Exception]]:
