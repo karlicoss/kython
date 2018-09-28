@@ -69,6 +69,16 @@ def parse_org_date(s: str) -> Dateish:
     else:
         raise RuntimeError(f"Bad date string {s}")
 
+def extract_date_fuzzy(s: str) -> Optional[Dateish]:
+    import datefinder # type: ignore
+    # TODO wonder how slow it is..
+    dates = list(datefinder.find_dates(s))
+    if len(dates) == 0:
+        return None
+    if len(dates) > 1:
+        raise RuntimeError
+    return dates[0]
+
 def date2org(t: datetime) -> str:
     return t.strftime("%Y-%m-%d %a")
 
@@ -157,10 +167,13 @@ class OrgNote:
         created = self._get_props().get('CREATED', None)
         if created is None:
             created = self._get_datestr()
-        if created is None:
-            return None
-        created = created[1:-1].strip() # cut off square brackets
-        return parse_org_date(created)
+        if created is not None:
+            created = created[1:-1].strip() # cut off square brackets
+            return parse_org_date(created)
+        # last desperate attempt...
+        # TODO maybe we need a fuzzy_date setting or something?..
+        dd = extract_date_fuzzy(self.heading)
+        return dd
 
     def __repr__(self):
         return f"OrgNote{{{self.date} {self.name}}}"
