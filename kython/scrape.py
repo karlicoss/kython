@@ -5,12 +5,15 @@ def scrape(url: str):
     soup = BeautifulSoup(data, "html.parser")
     return soup
 
-def get_chrome_driver():
+def get_chrome_driver(headless=True, profile_dir=None):
     from selenium import webdriver # type: ignore
     from selenium.webdriver.chrome.options import Options # type: ignore
 
     options = Options()
-    options.add_argument('--headless')
+    if headless:
+        options.add_argument('--headless')
+    if profile_dir is not None:
+        options.add_argument(f'--user-data-dir={profile_dir}')
     options.add_argument('--disable-gpu')  # Last I checked this was necessary.
     return webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", chrome_options=options)
 
