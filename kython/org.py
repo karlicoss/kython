@@ -147,7 +147,7 @@ class OrgNote:
 
     @property
     def tags(self):
-        return self.node.get_all_tags()
+        return set(self.node.get_all_tags())
 
     @property
     def name(self):
@@ -182,6 +182,10 @@ from typing import Iterator, Union
 def iter_org_file(fname: str) -> Iterator[Union[OrgNote, Exception]]:
     pass
 
+# TODO eh. ok, so looks like I want an actual tree, and then
+# if node was a proper and contributing, then just render it
+# otherwise, it contributes to parent
+# a bit tedious...
 def load_org_file(fname: str) -> List[OrgNote]:
     import PyOrgMode
     ofile = PyOrgMode.OrgDataStructure()
