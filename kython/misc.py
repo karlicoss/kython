@@ -8,7 +8,6 @@ from itertools import groupby
 import json
 from json import load as json_load, loads as json_loads
 from enum import Enum
-import logging
 import os
 from os.path import isfile
 from pprint import pprint
@@ -324,7 +323,11 @@ def get_logzero(*args, **kwargs):
 COLOREDLOGGER_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
 
 # TODO deprecate...
-def setup_logging(level=logging.DEBUG):
+def setup_logging(level=None):
+    import logging
+    if level is None:
+        level=logging.DEBUG
+
     if _KYTHON_LOGLEVEL_VAR in os.environ:
         level = getattr(logging, os.environ[_KYTHON_LOGLEVEL_VAR]) # TODO ugh a bit ugly, but whatever..
 
@@ -378,3 +381,5 @@ def memoize(f):
 def oset(*values):
     import collections
     return collections.OrderedDict([(v, None) for v in values])
+
+
