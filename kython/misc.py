@@ -84,6 +84,10 @@ def get_networks() -> Optional[Iterable[str]]:
     matches = re.findall('connected to (.*)', output)
     return set(name.strip() for name in matches)
 
+
+DatetimeIsh = Union[datetime, str, int]
+
+# TODO deprecate all these..
 def parse_date_new(s) -> date:
     if isinstance(s, date):
         return s
@@ -117,8 +121,6 @@ def parse_date(s, dayfirst=True, yearfirst=False) -> datetime:
     # Maybe, hardcode rtm format and let other be interpreted with dateparser
 
 parse_datetime = parse_date
-
-DatetimeIsh = Union[datetime, str, int]
 
 def parse_timestamp(ts: DatetimeIsh) -> datetime: # TODO return??
     if isinstance(ts, datetime):
