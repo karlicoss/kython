@@ -7,6 +7,7 @@ import PyOrgMode # type: ignore
 
 Dateish = Union[datetime, date]
 
+# TODO move to porg
 # TODO do something more meaningful..
 def _read_org_table(table) -> List[Dict[str, str]]:
     # TODO with_header?
@@ -15,7 +16,8 @@ def _read_org_table(table) -> List[Dict[str, str]]:
     res = []
     for row in table.content[2:]:
         d = {}
-        for i, val in enumerate(row): d[idx[i]] = val.strip()
+        for i, val in enumerate(row):
+            d[idx[i]] = val.strip()
         res.append(d)
     return res
 

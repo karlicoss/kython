@@ -8,9 +8,17 @@ DatetimeIsh = Union[datetime, str, int]
 
 # dateparser:
 # capable of handling:
-# endomondo-YYYY-MM-DD.json
+## endomondo-YYYY-MM-DD.json
+# couldn't:
+## Your Highlight on page 153 | Location 2342-2343 | Added on Thursday, October 19, 2017 1126 AM
+
 
 # datefinder:
+## In [9]: list(find_dates("Your Highlight on page 153 | Location 2342-2343 | Added on Thursday, October 19, 2017 1126 AM"))
+## Out[9]: [datetime.datetime(153, 10, 27, 0, 0), datetime.datetime(2017, 10, 19, 11, 26)]
+## right, maybe just select the most likely one?...
+
+## hasn't been updated for few year, people on guhub claim depenencies might be old..
 
 # TODO add some basic tests???
 
