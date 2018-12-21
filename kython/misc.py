@@ -238,6 +238,12 @@ def group_by_cmp(l, similar, dist=20):
         handled[i] = True
         group.append(l[i])
 
+    def dump_group():
+        nonlocal group
+        if len(group) > 0:
+            groups.append(group)
+            group = []
+
     for i in range(len(l)):
         if handled[i]:
             continue
@@ -249,9 +255,7 @@ def group_by_cmp(l, similar, dist=20):
                 add_to_group(cur)
                 last = cur
             cur += 1
-        if len(group) > 0:
-            groups.append(group)
-            group = []
+        dump_group()
     return groups
 
 
