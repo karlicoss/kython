@@ -76,8 +76,9 @@ def as_org_entry(
         todo=True,
 ):
     if heading is None:
-        if body is not None:
-            heading = body.splitlines()[0] # TODO ??
+        if body is None:
+            raise RuntimeError('Both heading and body are empty!!')
+        heading = body.splitlines()[0] # TODO ??
 
     if body is None:
         body = ''
