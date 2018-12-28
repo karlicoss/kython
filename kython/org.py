@@ -1,9 +1,9 @@
 from datetime import datetime, date
 from typing import List, Dict, Optional, Any, Union
 from functools import lru_cache
+import re
 
-
-import PyOrgMode # type: ignore
+from pathlib import Path
 
 Dateish = Union[datetime, date]
 
@@ -65,3 +65,61 @@ def datetime2orgtime(t: datetime) -> str:
 
 def datetime2org(t: datetime) -> str:
     return date2org(t) + " " + datetime2orgtime(t)
+
+# TODO priority maybe??
+# TODO need to sanitize!
+def as_org_entry(
+        heading: Optional[str] = None,
+        tags: List[str] = [],
+        body: Optional[str] = None,
+        created: Optional[datetime]=None,
+        todo=True,
+):
+    if heading is None:
+        if body is not None:
+            heading = body.splitlines()[0] # TODO ??
+
+    if body is None:
+        body = ''
+
+    # TODO FIXME escape everything properly!
+    heading = re.sub(r'\s', ' ', heading)
+    # TODO remove newlines from body
+
+    NOW = datetime.now() # TODO tz??
+    if created is None:
+        created = NOW
+
+    todo_s = 'TODO' if todo else ''
+    tag_s = ':'.join(tags)
+
+    sch = [f'  SCHEDULED: <{date2org(NOW)}>'] if todo else []
+
+    if len(tag_s) != 0:
+        tag_s = f':{tag_s}:'
+    lines = [
+        f"""* {todo_s} {heading} {tag_s}""",
+        *sch,
+        ':PROPERTIES:',
+        # TODO not sure if we even need when it was appended...
+        f':APPENDED: [{datetime2org(NOW)}]',
+        f':CREATED: [{datetime2org(created)}]',
+        ':END:',
+        body,
+        "",
+        "",
+    ]
+    return '\n'.join(lines)
+
+def append_org_entry(
+        path: Path,
+        *args,
+        **kwargs,
+):
+    res = as_org_entry(*args, **kwargs)
+    # https://stackoverflow.com/a/13232181
+    if len(res.encode('utf8')) > 4096:
+        raise RuntimeError('TODO FIXME LOGGING IS ENOUGH HERE')
+        # logging.warning("writing out %s might be non-atomic", res)
+    with path.open('a') as fo:
+        fo.write(res)
