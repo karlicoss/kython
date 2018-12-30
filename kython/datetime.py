@@ -1,8 +1,8 @@
 from datetime import datetime, date
 import re
-
 from typing import Union, Optional
 
+import pytz
 
 DatetimeIsh = Union[datetime, str, int]
 
@@ -24,16 +24,16 @@ DatetimeIsh = Union[datetime, str, int]
 
 _DT_REGEX = re.compile(r'\D(?P<date>\d{8})\D*(?P<time>\d{6})?\D*$')
 
-def parse_datetime(s: DatetimeIsh) -> Optional[datetime]:
+def _extract_mdatetime(s: DatetimeIsh) -> Optional[datetime]:
     if isinstance(s, datetime):
         return s
     if isinstance(s, int):
         return datetime.fromtimestamp(s) # TODO utc??
-    s = s.replace('_', '')
-    s = s.replace('-', '')
+    ss = s.replace('_', '')
+    ss = s.replace('-', '')
 
     # 1. handle simple case
-    mm = _DT_REGEX.search(s)
+    mm = _DT_REGEX.search(ss)
     if mm is not None:
         # TODO specify if it's utc somehow??
         dd = mm.group('date')
@@ -46,15 +46,40 @@ def parse_datetime(s: DatetimeIsh) -> Optional[datetime]:
             pat += "%H%M%S"
         return datetime.strptime(ss, pat)
 
-    return None
-
     # 2. TODO fallback to more complicated parsers
-
     # it's pretty slow..
     import dateparser # type: ignore
     return dateparser.parse(s)
     # fuck. looks like easiest is really to recognise groups of digits
 
+def _fix_tz(dt: datetime) -> datetime:
+    tz = dt.tzinfo
+    if tz is None:
+        return dt
+    tztype = type(tz)
+    tzmod = tztype.__module__
+    if tzmod.startswith('pytz'):
+        return tz
+    # e.g. datefinder returns its own StaticTzInfo somehow..
+    if tztype.__name__ == 'StaticTzInfo':
+        offset = getattr(tz, '_StaticTzInfo__offset')
+        offset_mins = offset.seconds // 60
+        # TODO ugh, does it have to be so hard??
+        return dt.replace(tzinfo=pytz.FixedOffset(offset_mins)) # type: ignore
+    else:
+        raise RuntimeError(f'Bad tz for {dt}: {tzmod} {tz}')
+
+def parse_mdatetime(s: DatetimeIsh) -> Optional[datetime]:
+    res = _extract_mdatetime(s)
+    if res is None:
+        return res
+    return _fix_tz(res)
+
+def parse_datetime(s: DatetimeIsh) -> datetime:
+    res = parse_mdatetime(s)
+    if res is None:
+        raise RuntimeError(f"Couldn't parse {s}")
+    return res
 
 # dateparser.parse -- capable of none of these v
 def test():
@@ -63,13 +88,16 @@ def test():
         ('github-20181005'                  , datetime(year=2018, month=10, day=5)),
         ('whatever-20181112090801'          , datetime(year=2018, month=11, day=12, hour=9, minute=8, second=1)),
         ('Instagram/IMG_20140411_034425.jpg', datetime(year=2014, month=4, day=11, hour=3, minute=44, second=25)),
+        ('2018-12-28T13:58:43Z'             , datetime(year=2018, month=12, day=28, hour=13, minute=58, second=43, tzinfo=pytz.UTC)), # TODO tz??  # dataparser: ok; datefinder -- couldn't
+        # TODO dateparser: fails on that '20181228T13:58:43Z' ; datefinder -- couldn't 
+        # TODO Wednesday, November 22, 2017 9:11:56 PM
     ]
 
     error = False
     for inp, res in tests:
-        dt = parse_datetime(inp)
+        dt = parse_mdatetime(inp)
         if dt != res:
-            print(f"{inp}: FAILED: expected to be parsed as {res}, got {dt} instead")
+            print(f"'{inp}': FAILED: expected to be parsed as {res}, got {dt} instead")
             error = True
         else:
             pass
