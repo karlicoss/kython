@@ -55,5 +55,5 @@ class JsonState:
                 self.path.unlink()
         else:
             with self.path.open('w') as fo:
-                json.dump(st, fo)
+                json.dump(st, fo, indent=1, sort_keys=True)
 

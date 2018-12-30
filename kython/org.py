@@ -112,6 +112,7 @@ def as_org_entry(
     ]
     return '\n'.join(lines)
 
+# TODO reuse in telegram2org??
 def append_org_entry(
         path: Path,
         *args,
