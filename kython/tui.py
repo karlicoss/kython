@@ -1,4 +1,5 @@
 # pip3 install getch
+# pylint: disable=no-name-in-module
 from getch import getch # type: ignore
 
 def getch_or_fail():

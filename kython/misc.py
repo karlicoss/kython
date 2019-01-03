@@ -141,7 +141,7 @@ def mavg(timestamps: List[datetime], values: List[T], window: Union[timedelta, i
     def avg(fr, to):
         res = [v for t, v in zip(timestamps, values) if fr <= t <= to]
         # TODO zero len
-        return sum(res) / len(res)
+        return sum(res) / len(res) # type: ignore # TODO ugh, need protocol for 'divisible by int?'
     return [(ts, avg(ts - window, ts)) for ts in timestamps]
 
 
@@ -190,8 +190,8 @@ def filter_only(p: Callable[[A], bool], l: Iterable[A]) -> A:
     return values[0]
 
 
-def concat(*lists):
-    res = []
+def concat(*lists: Iterable[T]):
+    res: List[T] = []
     for l in lists:
         res.extend(l)
     return res
@@ -201,6 +201,7 @@ lconcat = concat
 def flatten(lists):
     return lconcat(*lists)
 
+# pylint: disable=unsubscriptable-object
 def lsorted(s: Collection[T]) -> List[T]:
     return list(sorted(s))
 
