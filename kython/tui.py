@@ -1,5 +1,5 @@
 # pip3 install getch
-from getch import getch
+from getch import getch # type: ignore
 
 def getch_or_fail():
     import sys
