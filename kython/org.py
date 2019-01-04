@@ -88,10 +88,13 @@ def as_org_entry(
     # TODO remove newlines from body
 
     NOW = datetime.now() # TODO tz??
+    # appended only added if it's different from created
+    app = [f':APPENDED: [{datetime2org(NOW)}]'] if created is not None else []
     if created is None:
         created = NOW
 
-    todo_s = 'TODO' if todo else ''
+
+    todo_s = ' TODO' if todo else ''
     tag_s = ':'.join(tags)
 
     sch = [f'  SCHEDULED: <{date2org(NOW)}>'] if todo else []
@@ -99,11 +102,10 @@ def as_org_entry(
     if len(tag_s) != 0:
         tag_s = f':{tag_s}:'
     lines = [
-        f"""* {todo_s} {heading} {tag_s}""",
+        f"""*{todo_s} {heading} {tag_s}""",
         *sch,
         ':PROPERTIES:',
-        # TODO not sure if we even need when it was appended...
-        f':APPENDED: [{datetime2org(NOW)}]',
+        *app,
         f':CREATED: [{datetime2org(created)}]',
         ':END:',
         body,
@@ -113,6 +115,7 @@ def as_org_entry(
     return '\n'.join(lines)
 
 # TODO reuse in telegram2org??
+# TODO should we check if it exists first?
 def append_org_entry(
         path: Path,
         *args,
