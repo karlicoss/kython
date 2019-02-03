@@ -24,6 +24,12 @@ V = TypeVar('V')
 
 NUMERIC_CONST_PATTERN =  '[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
 
+def the(l: Iterable[A]) -> A:
+    it = iter(l)
+    first = next(it)
+    assert all(e == first for e in it)
+    return first
+
 def import_relative(___name___: str, mname: str):
     import importlib
     parent_name = '.'.join(___name___.split('.')[:-1])
