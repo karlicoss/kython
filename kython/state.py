@@ -6,31 +6,42 @@ import sys
 
 from kython.tui import yesno_or_fail
 
-Pathish = Union[Path, str]
+from kython.ktyping import PathIsh
+
+from atomicwrites import atomic_write
 
 # TODO lock file or something???
 # TODO local=true/false??
 class JsonState:
     def __init__(
             self,
-            path: Pathish,
+            path: PathIsh,
             dryrun=False,
             default=None,
     ) -> None:
-        if isinstance(path, str):
-            self.path = Path(path)
-        else:
-            self.path = path
+        self.path = Path(path)
         self.dryrun = dryrun
         if default is None:
             default = {}
 
         self.default = default
         self.state = None
+        # TODO for simplicity, write empty if file doesn't exist??
 
     def reset(self):
         if yesno_or_fail('reset the state?'):
             self._update(None)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.get()
+        # TODO hmm. maybe make it append only?
+
+    def __setitem__(self, key: str, value) -> None:
+        current = self.get()
+        assert key not in current # just in case
+        current[key] = value
+        with atomic_write(str(self.path), overwrite=True) as fo:
+            json.dump(current, fo, indent=1, sort_keys=True)
 
     # TODO shit. get and reset interact in weird ways. it's way more complicated than i wanted
     def get(self):
