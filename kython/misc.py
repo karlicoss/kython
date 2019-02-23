@@ -39,6 +39,16 @@ def import_relative(___name___: str, mname: str):
 def module_items(module) -> "OrderedDict[str, Any]":
     return OrderedDict((name, getattr(module, name)) for name in dir(module))
 
+def import_from(path, name):
+    import sys
+    try:
+        sys.path.append(path)
+        import importlib
+        return importlib.import_module(name)
+    finally:
+        sys.path.remove(path)
+
+
 
 def listdir_abs(d: str):
     from os.path import join
