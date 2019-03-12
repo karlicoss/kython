@@ -1,7 +1,8 @@
 from datetime import datetime
 import logging
 from subprocess import check_output
-from typing import List, Tuple, Optional, NamedTuple, Union
+import json
+from typing import List, Tuple, Optional, NamedTuple, Union, Dict, Any
 from pathlib import Path
 
 
@@ -60,14 +61,15 @@ class RepoHandle:
             f'{sha}:{path}',
         ).decode('utf8')
 
-    def get_all_versions(self):
-        revs = self.get_revisions()
-        jsons = []
-        for rev, dd in revs:
-            cc = self.get_content(rev)
-            if len(cc.strip()) == 0:
-                j = {}
-            else:
-                j = loads(cc)
-            jsons.append((rev, dd, j))
-        return jsons
+    # def get_all_versions(self):
+    #     revs = self.get_revisions()
+    #     jsons = []
+    #     for rev, dd in revs:
+    #         cc = self.get_content(rev)
+    #         j: Dict[str, Any] # TODO jsontype??
+    #         if len(cc.strip()) == 0:
+    #             j = {}
+    #         else:
+    #             j = json.loads(cc)
+    #         jsons.append((rev, dd, j))
+    #     return jsons
