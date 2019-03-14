@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, date
 
 import re
 
+import functools
 from itertools import groupby
 import json
 from json import load as json_load, loads as json_loads
@@ -406,3 +407,6 @@ def oset(*values):
     return collections.OrderedDict([(v, None) for v in values])
 
 
+
+cache = functools.lru_cache()
+cproperty = lambda f: property(cache(f))
