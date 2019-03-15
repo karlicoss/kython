@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import List, Union, Dict
+import logging
 import os
 import sys
 
@@ -10,6 +11,7 @@ from kython.ktyping import PathIsh
 
 from atomicwrites import atomic_write
 
+# TODO test it..
 # TODO lock file or something???
 # TODO local=true/false??
 class JsonState:
@@ -18,6 +20,7 @@ class JsonState:
             path: PathIsh,
             dryrun=False,
             default=None,
+            logger=logging.getLogger('kython-json-state'),
     ) -> None:
         self.path = Path(path)
         self.dryrun = dryrun
@@ -26,6 +29,7 @@ class JsonState:
 
         self.default = default
         self.state = None
+        self.logger = logger
         # TODO for simplicity, write empty if file doesn't exist??
 
     def reset(self):
@@ -67,4 +71,16 @@ class JsonState:
         else:
             with self.path.open('w') as fo:
                 json.dump(st, fo, indent=1, sort_keys=True)
+
+    def feed(self, key, value, action) -> None:
+        if key in self:
+            self.logger.debug(f'already handled: %s: %s', key, value)
+            return
+        self.logger.info(f'adding %s: %s', key, value)
+        print(f'adding new item {key}: {value}')
+        action()
+        # TODO FIXME check for lock files here?
+        self[key] = repr(value)
+
+
 
