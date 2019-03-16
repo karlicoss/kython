@@ -13,7 +13,7 @@ import os
 from os.path import isfile
 from pprint import pprint
 import sys
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union, Iterator, Collection, Sequence
+from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union, Iterator, Collection, Sequence, cast
 
 NAN = float('nan')
 
@@ -56,12 +56,17 @@ def listdir_abs(d: str):
     from os import listdir
     return [join(d, n) for n in sorted(listdir(d))]
 
-def make_dict(l: List[T], key: Callable[[T], K], value: Callable[[T], V]) -> Dict[K, V]:
-    res: Dict[K, V] = {}
+def _identity(v: T) -> V:
+    return cast(V, v)
+
+def make_dict(l: Iterable[T], key: Callable[[T], K], value: Callable[[T], V]=_identity) -> Dict[K, V]:
+    res: OrderedDict[K, V] = OrderedDict()
     for i in l:
         k = key(i)
         v = value(i)
-        assert k not in res, f"Duplicate key: {k}"
+        pv = res.get(k, None) # type: ignore
+        if pv is not None:
+            raise RuntimeError(f"Duplicate key: {k}. Previous value: {pv}, new value: {v}")
         res[k] = v
     return res
 
