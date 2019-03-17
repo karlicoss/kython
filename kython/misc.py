@@ -60,6 +60,7 @@ def _identity(v: T) -> V:
     return cast(V, v)
 
 def make_dict(l: Iterable[T], key: Callable[[T], K], value: Callable[[T], V]=_identity) -> Dict[K, V]:
+    # pylint: disable=unsubscriptable-object
     res: OrderedDict[K, V] = OrderedDict()
     for i in l:
         k = key(i)
