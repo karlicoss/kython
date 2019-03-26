@@ -14,6 +14,8 @@ from atomicwrites import atomic_write
 # TODO test it..
 # TODO lock file or something???
 # TODO local=true/false??
+# TODO hmm. state should be ordered ideally? so it's easy to add/remove items?
+# would require storing as list of lists? or use that https://stackoverflow.com/a/6921760/706389
 class JsonState:
     def __init__(
             self,
@@ -72,6 +74,7 @@ class JsonState:
             with self.path.open('w') as fo:
                 json.dump(st, fo, indent=1, sort_keys=True)
 
+    # TODO come up with better name?
     def feed(self, key, value, action) -> None:
         if key in self:
             self.logger.debug(f'already handled: %s: %s', key, value)
