@@ -1,4 +1,4 @@
-from typing import Union, TypeVar, Iterator
+from typing import Union, TypeVar, Iterator, Callable
 
 
 T = TypeVar('T')
@@ -20,6 +20,18 @@ def unwrap(res: Res[T]) -> T:
         raise res
     else:
         return res
+
+U = TypeVar('U')
+def fmap(f: Callable[[T], U]) -> Callable[[Res[T]], Res[U]]:
+    # TODO come up with a better name...
+    def cc(r: Res[T]) -> Res[U]:
+        try:
+            v = unwrap(r)
+        except Exception as e:
+            return e
+        else:
+            return f(v)
+    return cc
 
 
 def ytry(cb) -> Iterator[Exception]:
