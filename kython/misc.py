@@ -416,3 +416,9 @@ def oset(*values):
 
 cache = functools.lru_cache()
 cproperty = lambda f: property(cache(f))
+
+
+# just to trick mypy
+def fget(prop):
+    assert isinstance(prop, property)
+    return prop.fget
