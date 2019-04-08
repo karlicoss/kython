@@ -414,8 +414,8 @@ def oset(*values):
     return collections.OrderedDict([(v, None) for v in values])
 
 
-
-cache = functools.lru_cache()
+# TODO fixme how to do this properly?
+cache = functools.lru_cache(maxsize=1000)
 cproperty = lambda f: property(cache(f))
 
 
