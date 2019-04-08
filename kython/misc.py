@@ -439,14 +439,18 @@ def import_file(p: Path, name=None):
 from functools import wraps
 import time
 import logging
+from collections import Callable
 
 def timed(func):
+    lfunc = logging.warning
     @wraps(func)
     def wrapper(*args, **kwargs):
+        fname = func.__name__
         start = time.time()
+        lfunc('%s: running', fname)
         result = func(*args, **kwargs)
         end = time.time()
-        logging.warning("{} ran in {}s".format(func.__name__, round(end - start, 2)))
+        lfunc("%s ran in %s", fname, round(end - start, 2))
         return result
     return wrapper
 
