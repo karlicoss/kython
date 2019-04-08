@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, date
 
 import re
 
+from pathlib import Path
 import functools
 from itertools import groupby
 import json
@@ -274,7 +275,7 @@ def group_by_cmp(l, similar, dist=20):
 
         last = i
         cur = i
-        while cur < len(l) and cur - last < dist:
+        while cur < len(l) and cur - last <= dist:
             if similar(l[last], l[cur]):
                 add_to_group(cur)
                 last = cur
