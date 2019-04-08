@@ -423,3 +423,16 @@ cproperty = lambda f: property(cache(f))
 def fget(prop):
     assert isinstance(prop, property)
     return prop.fget
+
+
+
+def import_file(p: Path, name=None):
+    if name is None:
+        name = p.stem
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name, p) # type: ignore
+    foo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(foo) # type: ignore
+    return foo
+
+
