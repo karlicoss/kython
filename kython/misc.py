@@ -436,3 +436,22 @@ def import_file(p: Path, name=None):
     return foo
 
 
+from functools import wraps
+import time
+import logging
+
+def timed(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        logging.warning("{} ran in {}s".format(func.__name__, round(end - start, 2)))
+        return result
+    return wrapper
+
+import traceback
+def checkpoint():
+    xx = traceback.extract_stack()[-2]
+    tt = time.time()
+    logging.warning('%s %s', xx, tt)
