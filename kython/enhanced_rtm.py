@@ -1,10 +1,10 @@
 from .misc import chunks
-# pylint: disable=import-error
-from rtmapi import Rtm # type: ignore
 
 
 class EnhancedRtm:
     def __init__(self, api_key: str, api_secret: str, token: str) -> None:
+        # pylint: disable=import-error
+        from rtmapi import Rtm # type: ignore
         self.api = Rtm(api_key, api_secret, token=token)
         self.timeline = self.api.rtm.timelines.create().timeline.value
         # TODO check for errors

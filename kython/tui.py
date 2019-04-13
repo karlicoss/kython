@@ -8,6 +8,7 @@ def getch_or_fail():
         raise RuntimeError('Expected interactive shell!')
     return getch()
 
+
 def yesno_or_fail(prompt: str) -> bool:
     while True:
         print(f"{prompt} [y/n]: ")
