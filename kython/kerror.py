@@ -1,4 +1,4 @@
-from typing import Union, TypeVar, Iterator, Callable
+from typing import Union, TypeVar, Iterator, Callable, Iterable, List
 
 
 T = TypeVar('T')
@@ -39,4 +39,78 @@ def ytry(cb) -> Iterator[Exception]:
         cb()
     except Exception as e:
         yield e
+
+
+# TODO experimental, not sure if I like it
+def echain(message: str, e: Exception) -> Exception:
+    try:
+        # TODO is there a awy to get around raise from?
+        raise e from RuntimeError(message)
+    except Exception as e:
+        return e
+
+
+class Infinity:
+    def __eq__(self, other):
+        return False
+
+    def __lt__(self, other):
+        return False
+
+    def __gt__(self, other):
+        return True
+INF = Infinity()
+
+
+def sort_res_by(items: Iterable[Res[T]], key) -> List[Res[T]]:
+    """
+    The general idea is: just alaways carry errrors with the entry that precedes it
+    """
+    # TODO fuck. we don't really need that, but because of the way group_by_comparator
+    # implemented now, we do...
+    items = list(items)
+
+    # TODO kython dependency.. not good
+    from kython.misc import group_by_comparator, flatten
+    def cmp(left, right) -> bool:
+        return is_error(left) # if it's an error we want to attach it to the nex OK
+    groups = list(group_by_comparator(items, cmp))
+
+    def group_key(g):
+        last = g[-1]
+        try:
+            x: Res[T] = unwrap(last)
+        except:
+            return INF
+        else:
+            return key(x)
+    return flatten(sorted(groups, key=group_key))
+
+
+def test_sort_res_by():
+    class Exc(Exception):
+        def __eq__(self, other):
+            return self.args == other.args
+
+    ress = [
+        Exc('first'),
+        Exc('second'),
+        5,
+        3,
+        Exc('xxx'),
+        2,
+        1,
+        Exc('last'),
+    ]
+    results = sort_res_by(ress, lambda x: x)
+    assert results == [
+        1,
+        Exc('xxx'),
+        2,
+        3,
+        Exc('first'),
+        Exc('second'),
+        5,
+        Exc('last'),
+    ]
 

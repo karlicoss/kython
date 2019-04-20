@@ -273,8 +273,10 @@ def group_by_cmp(l, similar, dist=20):
         if handled[i]:
             continue
 
+        assert len(group) == 0
+        group = [l[i]]
         last = i
-        cur = i
+        cur = i + 1
         while cur < len(l) and cur - last <= dist:
             if similar(l[last], l[cur]):
                 add_to_group(cur)
@@ -282,6 +284,26 @@ def group_by_cmp(l, similar, dist=20):
             cur += 1
         dump_group()
     return groups
+
+
+# TODO careful about using the function above..
+def group_by_comparator(l, similar):
+    return group_by_cmp(l, similar, dist=1)
+
+
+def test_group_by_cmp():
+    l = [
+        -5, 1, 2, 3, 6, 8, 5, 11, 13, 19
+    ]
+    groups = list(group_by_comparator(l, similar=lambda a, b: abs(a - b) <= 2))
+    assert groups == [
+        [-5],
+        [1, 2, 3],
+        [6, 8],
+        [5],
+        [11, 13],
+        [19],
+    ]
 
 
 def numbers(from_=0) -> Iterator[int]:
