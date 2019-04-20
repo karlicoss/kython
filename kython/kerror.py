@@ -2,8 +2,11 @@ from typing import Union, TypeVar, Iterator, Callable, Iterable, List
 
 
 T = TypeVar('T')
+E = TypeVar('E', bound=Exception)
 
-Res = Union[T, Exception]
+ResT = Union[T, E]
+
+Res = ResT[T, Exception]
 
 
 # TODO make it a bit more typed??
@@ -42,12 +45,15 @@ def ytry(cb) -> Iterator[Exception]:
 
 
 # TODO experimental, not sure if I like it
-def echain(message: str, e: Exception) -> Exception:
+def echain(ex: E, cause: Exception) -> E:
     try:
         # TODO is there a awy to get around raise from?
-        raise e from RuntimeError(message)
+        raise ex from cause
     except Exception as e:
-        return e
+        if isinstance(e, type(ex)):
+            return e
+        else:
+            raise e
 
 
 class Infinity:
@@ -62,7 +68,7 @@ class Infinity:
 INF = Infinity()
 
 
-def sort_res_by(items: Iterable[Res[T]], key) -> List[Res[T]]:
+def sort_res_by(items: Iterable[ResT[T, E]], key) -> List[ResT[T, E]]:
     """
     The general idea is: just alaways carry errrors with the entry that precedes it
     """
@@ -102,7 +108,7 @@ def test_sort_res_by():
         1,
         Exc('last'),
     ]
-    results = sort_res_by(ress, lambda x: x)
+    results = sort_res_by(ress, lambda x: x) # type: ignore
     assert results == [
         1,
         Exc('xxx'),
