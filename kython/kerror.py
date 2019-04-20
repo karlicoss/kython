@@ -68,7 +68,7 @@ class Infinity:
 INF = Infinity()
 
 
-def sort_res_by(items: Iterable[ResT[T, E]], key) -> List[ResT[T, E]]:
+def sort_res_by(items: Iterable[ResT], key) -> List[ResT]:
     """
     The general idea is: just alaways carry errrors with the entry that precedes it
     """
