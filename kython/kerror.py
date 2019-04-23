@@ -30,7 +30,7 @@ def fmap(f: Callable[[T], U]) -> Callable[[Res[T]], Res[U]]:
     def cc(r: Res[T]) -> Res[U]:
         try:
             v = unwrap(r)
-        except Exception as e:
+        except Exception as e: # TODO also check exception against error type?
             return e
         else:
             return f(v)
@@ -85,7 +85,7 @@ def sort_res_by(items: Iterable[ResT], key) -> List[ResT]:
     def group_key(g):
         last = g[-1]
         try:
-            x: Res[T] = unwrap(last)
+            x: ResT = unwrap(last)
         except:
             return INF
         else:
