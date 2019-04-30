@@ -6,7 +6,7 @@ import re
 
 from pathlib import Path
 import functools
-from itertools import groupby
+from itertools import groupby, islice
 import json
 from json import load as json_load, loads as json_loads
 from enum import Enum
@@ -315,7 +315,16 @@ def numbers(from_=0) -> Iterator[int]:
 def first(iterable):
     return next(iter(iterable))
 
+def ichunks(l: Iterator[T], n: int):
+    while True:
+        ch = list(islice(l, 0, n))
+        if len(ch) == 0:
+            break
+        yield ch
+
+
 def chunks(l: Sequence[T], n: int): # no return type, fucking mypy can't handle str
+    # TODO rewrite in terms of ichunks?
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
