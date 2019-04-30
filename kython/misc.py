@@ -431,6 +431,7 @@ def safe_get(d, *args, default=None):
 
 import functools
 
+# TODO remove??
 def memoize(f):
     cache = None
     def helper():

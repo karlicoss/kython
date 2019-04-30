@@ -30,7 +30,7 @@ def fmap(f: Callable[[T], U]) -> Callable[[Res[T]], Res[U]]:
     def cc(r: Res[T]) -> Res[U]:
         try:
             v = unwrap(r)
-        except Exception as e: # TODO also check exception against error type?
+        except Exception as e: # TODO also check exception against error type? not sure if possible...
             return e
         else:
             return f(v)
