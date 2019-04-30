@@ -43,15 +43,20 @@ def check(p: Path) -> List[str]:
         errs.append(c.stdout.decode('utf8'))
     return errs
 
-errors: List[str] = []
+def main():
+    errors: List[str] = []
 
-for s in standalone:
-    errors.extend(check(Path('kython').joinpath(s)))
+    for s in standalone:
+        errors.extend(check(Path('kython').joinpath(s)))
 
 
-if len(errors) > 0:
-    for e in errors:
-        print(e)
-    sys.exit(1)
-else:
-    print("All good!")
+    if len(errors) > 0:
+        for e in errors:
+            print(e)
+        sys.exit(1)
+    else:
+        print("All good!")
+
+
+if __name__ == '__main__':
+    main()
