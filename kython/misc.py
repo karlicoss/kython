@@ -316,8 +316,13 @@ def first(iterable):
     return next(iter(iterable))
 
 def ichunks(l: Iterator[T], n: int):
+    # TODO FIXME on mypy level
+    if hasattr(l, '__iter__'):
+        it = iter(l)
+    else:
+        it = l
     while True:
-        ch = list(islice(l, 0, n))
+        ch = list(islice(it, 0, n))
         if len(ch) == 0:
             break
         yield ch
