@@ -461,15 +461,30 @@ def fget(prop):
     assert isinstance(prop, property)
     return prop.fget
 
+from .ktyping import PathIsh
+
+from contextlib import contextmanager
+@contextmanager
+def extra_path(p: PathIsh):
+    try:
+        sys.path.append(str(p))
+        yield
+    finally:
+        sys.path.pop()
 
 
-def import_file(p: Path, name=None):
+def import_file(p: PathIsh, name=None):
+    p = Path(p)
     if name is None:
         name = p.stem
     import importlib.util
     spec = importlib.util.spec_from_file_location(name, p) # type: ignore
     foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo) # type: ignore
+
+    with extra_path(p.parent):
+        # needed for local (same dir) imports
+        # might not be enough for non top level imports..
+        spec.loader.exec_module(foo) # type: ignore
     return foo
 
 
