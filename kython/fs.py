@@ -2,6 +2,7 @@ from enum import Enum
 from typing import List
 import os
 import logging
+from pathlib import Path
 
 from kython.ktyping import PathIsh
 
@@ -25,7 +26,7 @@ def traverse(root: PathIsh, handler, logger=None):
     if logger is None:
         logger = logging.getLogger('fs-traverse')
     for root, dirs, files in os.walk(root):
-        res = handler(root, dirs, files) # TODO map to Path?
+        res = handler(Path(root), dirs, files) # TODO map all to Path? 
         if res == Go.BAIL:
             logger.info('skipping %s', root) # TODO reason would be nice?
             dirs[:] = []
@@ -33,7 +34,6 @@ def traverse(root: PathIsh, handler, logger=None):
 
 
 def test(tmp_path):
-    from pathlib import Path
     tdir = Path(tmp_path)
     a = tdir / 'a'
     aa = a / 'a'
@@ -48,6 +48,6 @@ def test(tmp_path):
     def handler(root, dirs, files):
         if basename(root) == 'b':
             return Go.BAIL
-        collected.add(Path(root))
+        collected.add(root)
     traverse(tdir, handler)
     assert collected == {tdir, a, aa}
