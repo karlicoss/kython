@@ -29,3 +29,25 @@ def traverse(root: PathIsh, handler, logger=None):
         if res == Go.BAIL:
             logger.info('skipping %s', root) # TODO reason would be nice?
             dirs[:] = []
+
+
+
+def test(tmp_path):
+    from pathlib import Path
+    tdir = Path(tmp_path)
+    a = tdir / 'a'
+    aa = a / 'a'
+    ab = a / 'b'
+    b = tdir / 'b'
+    bc = b / 'c'
+    for d in [a, aa, ab, b, bc]:
+        d.mkdir()
+
+    from os.path import basename
+    collected = set()
+    def handler(root, dirs, files):
+        if basename(root) == 'b':
+            return Go.BAIL
+        collected.add(Path(root))
+    traverse(tdir, handler)
+    assert collected == {tdir, a, aa}
