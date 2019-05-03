@@ -81,8 +81,8 @@ class Wdict(Zoomable, OrderedDict):
     def consumed(self):
         return len(self.nonempty) == 0
 
-class Wint(Zoomable):
-    def __init__(self, parent, value: int) -> None:
+class Wvalue(Zoomable):
+    def __init__(self, parent, value: Any) -> None:
         super().__init__(parent)
         self.value = value
 
@@ -113,8 +113,8 @@ def _wrap(j, parent=None):
             res[k] = vv
             cc.extend(c)
         return res, cc
-    if isinstance(j, int):
-        res = Wint(parent, j)
+    if isinstance(j, (int, float, str, type(None))):
+        res = Wvalue(parent, j)
         return res, [res]
     raise RuntimeError(str(j))
 
@@ -153,6 +153,13 @@ def test_consumed():
         c = w['c'].zoom()
         d = c['d'].zoom()
 
+def test_types():
+    # (string, number, object, array, boolean or nul
+    with wrap({'string': 'string', 'number': 3.14, 'boolean': True, 'null': None}) as w:
+        w['string'].zoom()
+        w['number'].zoom()
+        w['boolean'].zoom()
+        w['null'].zoom()
 # def test():
 #     with wrap({'a': {'xx': 123}, 'b': 222}) as w:
 #         # w, a, b, xx
