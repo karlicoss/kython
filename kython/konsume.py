@@ -1,3 +1,4 @@
+# TODO get rid of these in favor of my zoomable thing?
 def keq(j, *keys) -> bool:
     return list(sorted(j.keys())) == list(sorted(keys))
 
@@ -12,6 +13,7 @@ def dell(dd, *keys):
         del dd[k]
 
 
+# TODO or actually, that can be quite handy...
 def zoom(dd, *keys):
     akeq(dd, *keys)
     vals = [dd[k] for k in keys]
@@ -54,24 +56,11 @@ class Zoomable:
     def _remove(self, xx):
         raise NotImplementedError
 
-    def iter_nonempty(self):
-        raise NotImplementedError
-
     def this_consumed(self):
         raise NotImplementedError
 
-    @property
-    def nonempty(self):
-        return list(self.iter_nonempty())
-
 from collections import OrderedDict
 class Wdict(Zoomable, OrderedDict):
-    def iter_nonempty(self):
-        for k, v in self.items():
-            yield from v.iter_nonempty()
-        if len(self) > 0:
-            yield self
-
     def _remove(self, xx):
         keys = [k for k, v in self.items() if v is xx]
         assert len(keys) == 1
@@ -84,8 +73,16 @@ class Wdict(Zoomable, OrderedDict):
     def this_consumed(self):
         return len(self) == 0
 
-    def consumed(self):
-        return len(self.nonempty) == 0
+class Wlist(Zoomable, list):
+    def _remove(self, xx):
+        self.remove(xx)
+
+    @property
+    def dependants(self):
+        return list(self)
+
+    def this_consumed(self):
+        return len(self) == 0
 
 class Wvalue(Zoomable):
     def __init__(self, parent, value: Any) -> None:
@@ -99,35 +96,29 @@ class Wvalue(Zoomable):
     def this_consumed(self):
         return True # TODO not sure..
 
-    def iter_nonempty(self):
-        yield self
-        # TODO shit inheritance doesn't work..
-# class Wint(Zoomable, int):
-#     def __new__(cls, *args, **kwargs):
-#         print(cls)
-#         print(args)
-#         print(kwargs)
-#         return super().__new__(cls, 5)
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__()
-    #     print("HI")
+    def __repr__(self):
+        return 'WValue{' + repr(self.value) + '}'
 
 def _wrap(j, parent=None):
-    # TODO the very top level is kinda special, it needs to assert that all the children are consumed...
     res: Zoomable
     if isinstance(j, dict):
-        # TODO need to make wdict first, then populate it with values? wonder if should inherit from ordered dict??
         res = Wdict(parent)
         cc = [res]
         for k, v in j.items():
             vv, c  = _wrap(v, parent=res)
             res[k] = vv
             cc.extend(c)
-        # res.dependants = cc + [res]
+        return res, cc
+    if isinstance(j, list):
+        res = Wlist(parent)
+        cc = [res]
+        for i in j:
+            ii, c = _wrap(i, parent=res)
+            res.append(ii)
+            cc.extend(c)
         return res, cc
     if isinstance(j, (int, float, str, type(None))):
         res = Wvalue(parent, j)
-        # res.dependants = [res] # TODO not sure if including self is too confusing
         return res, [res]
     raise RuntimeError(str(j))
 
@@ -142,8 +133,6 @@ def wrap(j):
 
     yield w
 
-    # from pprint import pprint
-    # pprint(children)
     for c in children:
         if not c.this_consumed(): # TODO hmm. how does it figure out if it's consumed???
             raise UnconsumedError(str(c))
@@ -168,25 +157,15 @@ def test_consumed():
 
 def test_types():
     # (string, number, object, array, boolean or nul
-    with wrap({'string': 'string', 'number': 3.14, 'boolean': True, 'null': None}) as w:
+    with wrap({'string': 'string', 'number': 3.14, 'boolean': True, 'null': None, 'list': [1, 2, 3]}) as w:
         w['string'].zoom()
         w['number'].consume()
         w['boolean'].zoom()
         w['null'].zoom()
+        for x in list(w['list'].zoom()): # TODO eh. how to avoid the extra list thing?
+            x.consume()
 
 def test_consume_all():
     with wrap({'aaa': {'bbb': {'hi': 123}}}) as w:
         aaa = w['aaa'].zoom()
         aaa['bbb'].consume_all()
-# def test():
-#     with wrap({'a': {'xx': 123}, 'b': 222}) as w:
-#         # w, a, b, xx
-#         # TODO not sure about nonempty...
-#         # assert len(w.nonempty) == 4
-#         a = w['a'].zoom()
-#         b = w['b'].zoom()
-#         # TODO b obj is not consumed yet
-#         # TODO nonempty method?
-#         print(w.nonempty)
-#         pass
-#     # TODO
