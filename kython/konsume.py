@@ -21,27 +21,12 @@ def zoom(dd, *keys):
         return vals
 
 
-def dict_wrap(d):
-    pass
-
-
-    if isinstance(j, dict):
-        pass
-    pass
-
-class Wrapper:
-    pass
-
-    # def consumed():
-    #     # TODO start with dicts??
-    #     # TODO unwrap method or value property?
-    #     # TODO if we use value, it's consumed?
-    #     pass
 from typing import Any
 
+# TODO need to support lists
 class Zoomable:
     def __init__(self, parent, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs) # type: ignore
         self.parent = parent
 
     # TODO not sure, maybe do it via del??
@@ -49,6 +34,9 @@ class Zoomable:
     @property
     def dependants(self):
         raise NotImplementedError
+
+    def ignore(self):
+        self.consume_all()
 
     def consume_all(self):
         for d in self.dependants:
@@ -126,6 +114,7 @@ class Wvalue(Zoomable):
 
 def _wrap(j, parent=None):
     # TODO the very top level is kinda special, it needs to assert that all the children are consumed...
+    res: Zoomable
     if isinstance(j, dict):
         # TODO need to make wdict first, then populate it with values? wonder if should inherit from ordered dict??
         res = Wdict(parent)
