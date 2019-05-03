@@ -53,7 +53,7 @@ class Zoomable:
     def consume_all(self):
         for d in self.dependants:
             d.consume_all()
-            d.consume()
+        self.consume()
 
     def consume(self):
         assert self.parent is not None
@@ -188,7 +188,7 @@ def test_types():
 def test_consume_all():
     with wrap({'aaa': {'bbb': {'hi': 123}}}) as w:
         aaa = w['aaa'].zoom()
-        aaa.consume_all()
+        aaa['bbb'].consume_all()
 # def test():
 #     with wrap({'a': {'xx': 123}, 'b': 222}) as w:
 #         # w, a, b, xx
