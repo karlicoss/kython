@@ -44,9 +44,23 @@ class Zoomable:
         super().__init__(*args, **kwargs)
         self.parent = parent
 
-    def zoom(self):
+    # TODO not sure, maybe do it via del??
+    # TODO need to make sure they are in proper order? object should be last..
+    @property
+    def dependants(self):
+        raise NotImplementedError
+
+    def consume_all(self):
+        for d in self.dependants:
+            d.consume_all()
+            d.consume()
+
+    def consume(self):
         assert self.parent is not None
         self.parent._remove(self)
+
+    def zoom(self):
+        self.consume()
         return self
 
     def _remove(self, xx):
@@ -75,6 +89,10 @@ class Wdict(Zoomable, OrderedDict):
         assert len(keys) == 1
         del self[keys[0]]
 
+    @property
+    def dependants(self):
+        return list(self.values())
+
     def this_consumed(self):
         return len(self) == 0
 
@@ -85,6 +103,10 @@ class Wvalue(Zoomable):
     def __init__(self, parent, value: Any) -> None:
         super().__init__(parent)
         self.value = value
+
+    @property
+    def dependants(self):
+        return []
 
     def this_consumed(self):
         return True # TODO not sure..
@@ -112,9 +134,11 @@ def _wrap(j, parent=None):
             vv, c  = _wrap(v, parent=res)
             res[k] = vv
             cc.extend(c)
+        # res.dependants = cc + [res]
         return res, cc
     if isinstance(j, (int, float, str, type(None))):
         res = Wvalue(parent, j)
+        # res.dependants = [res] # TODO not sure if including self is too confusing
         return res, [res]
     raise RuntimeError(str(j))
 
@@ -157,9 +181,14 @@ def test_types():
     # (string, number, object, array, boolean or nul
     with wrap({'string': 'string', 'number': 3.14, 'boolean': True, 'null': None}) as w:
         w['string'].zoom()
-        w['number'].zoom()
+        w['number'].consume()
         w['boolean'].zoom()
         w['null'].zoom()
+
+def test_consume_all():
+    with wrap({'aaa': {'bbb': {'hi': 123}}}) as w:
+        aaa = w['aaa'].zoom()
+        aaa.consume_all()
 # def test():
 #     with wrap({'a': {'xx': 123}, 'b': 222}) as w:
 #         # w, a, b, xx
