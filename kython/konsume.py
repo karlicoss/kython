@@ -1,29 +1,13 @@
-# TODO get rid of these in favor of my zoomable thing?
-def keq(j, *keys) -> bool:
-    return list(sorted(j.keys())) == list(sorted(keys))
-
-def akeq(j, *keys):
-    if keq(j, *keys):
-        return
-    raise RuntimeError(f'expected dict to have keys {keys}, got {j.keys()}')
-
-
-def dell(dd, *keys):
-    for k in keys:
-        del dd[k]
-
-
-# TODO or actually, that can be quite handy...
-def zoom(dd, *keys):
-    akeq(dd, *keys)
-    vals = [dd[k] for k in keys]
-    if len(keys) == 1:
-        return vals[0] # eh, not sure...
-    else:
-        return vals
-
-
+from collections import OrderedDict
 from typing import Any
+
+
+def ignore(w, *keys):
+    for k in keys:
+        w[k].ignore()
+
+def zoom(w, *keys):
+    return [w[k].zoom() for k in keys]
 
 # TODO need to support lists
 class Zoomable:
@@ -59,7 +43,7 @@ class Zoomable:
     def this_consumed(self):
         raise NotImplementedError
 
-from collections import OrderedDict
+
 class Wdict(Zoomable, OrderedDict):
     def _remove(self, xx):
         keys = [k for k, v in self.items() if v is xx]
