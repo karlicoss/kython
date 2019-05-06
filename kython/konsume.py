@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any
+from typing import Any, List
 
 
 def ignore(w, *keys):
@@ -85,6 +85,7 @@ class Wvalue(Zoomable):
 
 def _wrap(j, parent=None):
     res: Zoomable
+    cc: List[Zoomable]
     if isinstance(j, dict):
         res = Wdict(parent)
         cc = [res]
@@ -93,7 +94,7 @@ def _wrap(j, parent=None):
             res[k] = vv
             cc.extend(c)
         return res, cc
-    if isinstance(j, list):
+    elif isinstance(j, list):
         res = Wlist(parent)
         cc = [res]
         for i in j:
@@ -101,10 +102,11 @@ def _wrap(j, parent=None):
             res.append(ii)
             cc.extend(c)
         return res, cc
-    if isinstance(j, (int, float, str, type(None))):
+    elif isinstance(j, (int, float, str, type(None))):
         res = Wvalue(parent, j)
         return res, [res]
-    raise RuntimeError(str(j))
+    else:
+        raise RuntimeError(str(j))
 
 from contextlib import contextmanager
 
