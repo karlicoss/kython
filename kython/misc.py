@@ -491,7 +491,7 @@ def import_file(p: PathIsh, name=None):
 from functools import wraps
 import time
 import logging
-from collections import Callable
+from collections.abc import Callable
 
 def timed(func):
     lfunc = logging.warning

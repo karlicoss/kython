@@ -1,3 +1,10 @@
+from contextlib import contextmanager
+
+@contextmanager
+def nullcontext(enter_result=None):
+    yield enter_result
+
+
 # borrowed from /usr/lib/python3.7/datetime.py
 from datetime import datetime, timezone, timedelta
 

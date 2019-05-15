@@ -12,6 +12,7 @@ from kython.ktyping import PathIsh
 from atomicwrites import atomic_write
 
 # TODO test it..
+# borrow tests from org-view?
 # TODO lock file or something???
 # TODO local=true/false??
 # TODO hmm. state should be ordered ideally? so it's easy to add/remove items?
