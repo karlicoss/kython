@@ -22,24 +22,36 @@ def canonify_domain(dom: str):
     #     'www.youtube.com': 'youtube.com',
     # }.get(dom, dom)
 
-def useless_query_params(dom: str): # TODO might be useful to pass parts as well..
-    # TODO instead, have some sort of domain config?
-    # TODO similar: keep useless, remove useful and warn on discrepancy?
-    return {
-        'youtube.com': {'v'},
-    }
-    pass
-
 from typing import NamedTuple, Collection, Optional
 class Spec(NamedTuple):
-    query_keep  : Optional[Collection[str]] = None
-    query_remove: Optional[Collection[str]] = None
+    qkeep  : Optional[Collection[str]] = None
+    qremove: Optional[Collection[str]] = None
+
+    def keep_query(self, q: str):
+        keep = False
+        remove = False
+        if self.qkeep is not None and q in self.qkeep:
+            keep = True
+        if self.qremove is not None and q in self.qremove:
+            remove = True
+        if keep and remove:
+            return True # TODO need a warning
+        if keep:
+            return True
+        if remove:
+            return False
+        return True
+
 
 
 specs = {
     'youtube.com': Spec(
-        query_keep={'v'}, # TODO FIXME frozenset
-        query_remove={'list', 'index', 't'} # TODO not so sure about t
+        qkeep={'v'}, # TODO FIXME frozenset
+        qremove={'list', 'index', 't'} # TODO not so sure about t
+    ),
+    'github.com': Spec(
+        qkeep={'q'},
+        qremove={'o', 's', 'type'},
     )
 }
 
@@ -53,11 +65,8 @@ def canonify(url: str) -> str:
     spec = specs.get(domain, None)
     if spec is not None:
         qq = parse_qsl(query)
-        if spec.query_keep is not None:
-            qq = [(k, v) for k, v in qq if k in spec.query_keep]
+        qq = [(k, v) for k, v in qq if spec.keep_query(k)]
         query = urlencode(qq)
-
-
     uns = urlunsplit((
         '',
         domain,
@@ -93,6 +102,9 @@ import pytest # type: ignore
     # )
     ( "https://physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
     , "physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
+    ),
+    ( "https://github.com/search?o=asc&q=track&s=stars&type=Repositories"
+    , "github.com/search?q=track"
     )
 ])
 def test(url, expected):
