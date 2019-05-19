@@ -36,6 +36,10 @@ default_qremove = {
     'utm_campaign',
     'utm_medium',
     'utm_term',
+
+    # https://moz.com/blog/decoding-googles-referral-string-or-how-i-survived-secure-search
+    # some google referral
+    'usg',
 }
 
 class Spec(NamedTuple):
@@ -56,6 +60,7 @@ class Spec(NamedTuple):
         if remove:
             return False
         return True
+        # TODO basically, at this point only qremove matters
 
     def make(qremove=None, **kwargs):
         qr = default_qremove.union(qremove or {})
@@ -71,6 +76,10 @@ specs = {
     'github.com': S(
         qkeep={'q'},
         qremove={'o', 's', 'type'},
+    ),
+    'facebook.com': S(
+        qkeep={'fbid'},
+        qremove={'set', 'type'},
     )
 }
 
@@ -136,6 +145,9 @@ import pytest # type: ignore
     ( "https://80000hours.org/career-decision/article/?utm_source=The+EA+Newsletter&utm_campaign=04ca3c2244-EMAIL_CAMPAIGN_2019_04_03_04_26&utm_medium=email&utm_term=0_51c1df13ac-04ca3c2244-318697649"
     , "80000hours.org/career-decision/article",
     ),
+    ( "https://www.facebook.com/photo.php?fbid=24147689823424326&set=pcb.2414778905423667&type=3&theater"
+    , "facebook.com/photo.php?fbid=24147689823424326",
+    )
 ])
 def test(url, expected):
     assert canonify(url) == expected
@@ -144,6 +156,10 @@ def test(url, expected):
     # TODO scott aaronson
     # TODO  again, for that actually sequence would be good...
 
+    # TODO "https://twitter.com/search?q=pinboard search&src=typd"
+
+    # TODO https://www.zalando-lounge.ch/#/
+# /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
 def main():
     pass
