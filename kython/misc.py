@@ -28,7 +28,10 @@ NUMERIC_CONST_PATTERN =  '[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [
 
 def the(l: Iterable[A]) -> A:
     it = iter(l)
-    first = next(it)
+    try:
+        first = next(it)
+    except StopIteration as ee:
+        raise RuntimeError(ee)
     assert all(e == first for e in it)
     return first
 
