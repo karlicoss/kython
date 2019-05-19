@@ -96,6 +96,9 @@ def canonify(url: str) -> str:
     frag = parts.fragment
     spec = get_spec(domain)
 
+    # print(parts)
+    # print(spec)
+
     qq = parse_qsl(query)
     qq = [(k, v) for k, v in qq if spec.keep_query(k)]
     query = urlencode(qq)
@@ -147,7 +150,13 @@ import pytest # type: ignore
     ),
     ( "https://www.facebook.com/photo.php?fbid=24147689823424326&set=pcb.2414778905423667&type=3&theater"
     , "facebook.com/photo.php?fbid=24147689823424326",
-    )
+    ),
+
+    # TODO shit. is that normal???
+    # SplitResult(scheme='https', netloc='unix.stackexchange.com', path='/questions/171603/convert-file-contents-to-lower-case/171708', query='', fragment='171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ')
+    # ( "https://unix.stackexchange.com/questions/171603/convert-file-contents-to-lower-case/171708#171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ"
+    # , "unix.stackexchange.com/questions/171603/convert-file-contents-to-lower-case/171708#171708"
+    # )
 ])
 def test(url, expected):
     assert canonify(url) == expected
@@ -159,6 +168,8 @@ def test(url, expected):
     # TODO "https://twitter.com/search?q=pinboard search&src=typd"
 
     # TODO https://www.zalando-lounge.ch/#/
+
+    # TODO https://unix.stackexchange.com/questions/171603/convert-file-contents-to-lower-case/171708#171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
 def main():
