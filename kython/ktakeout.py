@@ -37,7 +37,11 @@ class TakeoutHTMLParser(HTMLParser):
     def __init__(self, callback) -> None:
         super().__init__()
         self.state: State = State.OUTSIDE
+
+        self.title_parts: List[str] = []
+        self.title: Optional[str] = None
         self.url: Optional[str] = None
+
         self.callback = callback
 
     # enter content cell -> scan link -> scan date -> finish till next content cell
@@ -54,6 +58,15 @@ class TakeoutHTMLParser(HTMLParser):
                 hr = hr[len(prefix):]
                 hr = unquote(hr) # TODO not sure about that...
             assert self.url is None; self.url = hr
+
+    def handle_endtag(self, tag):
+        if self.state == State.PARSING_LINK and tag == 'a':
+            assert self.title is None
+            assert len(self.title_parts) > 0
+            self.title = ''.join(self.title_parts)
+            self.title_parts = []
+
+            self.state = State.PARSING_DATE
 
     # search example:
     # Visited Emmy Noether - Wikipedia
@@ -72,7 +85,7 @@ class TakeoutHTMLParser(HTMLParser):
                 return
 
         if self.state == State.PARSING_LINK:
-            self.state = State.PARSING_DATE
+            self.title_parts.append(data)
             return
 
         # TODO extracting channel as part of wereyouhere could be useful as well
@@ -81,18 +94,18 @@ class TakeoutHTMLParser(HTMLParser):
             time = parse_dt(data.strip())
             assert time.tzinfo is not None
 
-            assert self.url is not None
-            self.callback(time, self.url)
-            self.url = None
+            assert self.url is not None; assert self.title is not None
+            self.callback(time, self.url, self.title)
+            self.url = None; self.title = None
 
             self.state = State.OUTSIDE
             return
 
 def _helper(archive, path):
     from kython import kompress
-    collected = []
-    def callback(dt, url):
-        collected.append((dt, url))
+    collected = {}
+    def callback(dt, url, title):
+        collected[(dt, url)] = title
 
     p = TakeoutHTMLParser(callback)
     with kompress.open(archive, path) as fo:
@@ -128,8 +141,9 @@ def test_search():
     found = False
     edt = datetime(year=2018, month=12, day=17, hour=8, minute=16, second=18, tzinfo=pytz.utc)
     eurl = 'https://en.wikipedia.org/wiki/Emmy_Noether'
-    for dt, url in collected:
-        if dt == edt and url.startswith(eurl):
+    etitle = 'Emmy Noether - Wikipedia'
+    for (dt, url), title in collected.items():
+        if dt == edt and url.startswith(eurl) and title == etitle:
             found = True
 
     assert found
