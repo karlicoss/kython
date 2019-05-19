@@ -6,15 +6,21 @@ from urllib.parse import urlsplit, parse_qsl, urlunsplit, parse_qs, urlencode
 # https://github.com/commonsearch/urlparse4
 # rom urllib.parse import urlparse
 
-def try_cut(prefix, s):
+def try_cutl(prefix, s):
     if s.startswith(prefix):
         return s[len(prefix):]
     else:
         return s
 
+def try_cutr(suffix, s):
+    if s.endswith(suffix):
+        return s[:-len(suffix)]
+    else:
+        return s
+
 
 def canonify_domain(dom: str):
-    dom = try_cut('www.', dom)
+    dom = try_cutl('www.', dom)
     return dom
     # return {
     #     # TODO list of domains to strip www? or rather, not strip www?
@@ -23,6 +29,15 @@ def canonify_domain(dom: str):
     # }.get(dom, dom)
 
 from typing import NamedTuple, Collection, Optional
+
+
+default_qremove = {
+    'utm_source',
+    'utm_campaign',
+    'utm_medium',
+    'utm_term',
+}
+
 class Spec(NamedTuple):
     qkeep  : Optional[Collection[str]] = None
     qremove: Optional[Collection[str]] = None
@@ -42,31 +57,40 @@ class Spec(NamedTuple):
             return False
         return True
 
+    def make(qremove=None, **kwargs):
+        qr = default_qremove.union(qremove or {})
+        return Spec(qremove=qr, **kwargs)
 
+S = Spec.make
 
 specs = {
-    'youtube.com': Spec(
+    'youtube.com': S(
         qkeep={'v'}, # TODO FIXME frozenset
         qremove={'list', 'index', 't'} # TODO not so sure about t
     ),
-    'github.com': Spec(
+    'github.com': S(
         qkeep={'q'},
         qremove={'o', 's', 'type'},
     )
 }
 
+_def_spec = S()
+def get_spec(dom: str) -> Spec:
+    return specs.get(dom, _def_spec)
+
+
 def canonify(url: str) -> str:
     parts = urlsplit(url)
     domain = canonify_domain(parts.netloc)
 
-    # TODO need to sort them regardless? so need a dummy spec?
     query = parts.query
     frag = parts.fragment
-    spec = specs.get(domain, None)
-    if spec is not None:
-        qq = parse_qsl(query)
-        qq = [(k, v) for k, v in qq if spec.keep_query(k)]
-        query = urlencode(qq)
+    spec = get_spec(domain)
+
+    qq = parse_qsl(query)
+    qq = [(k, v) for k, v in qq if spec.keep_query(k)]
+    query = urlencode(qq)
+
     uns = urlunsplit((
         '',
         domain,
@@ -74,7 +98,10 @@ def canonify(url: str) -> str:
         query,
         frag,
     ))
-    return try_cut('//', uns) # // due to dummy protocol
+
+    uns = try_cutl('//', uns)  # // due to dummy protocol
+    uns = try_cutr('/', uns) # not sure if there is a better way
+    return uns
 
 
 
@@ -105,7 +132,10 @@ import pytest # type: ignore
     ),
     ( "https://github.com/search?o=asc&q=track&s=stars&type=Repositories"
     , "github.com/search?q=track"
-    )
+    ),
+    ( "https://80000hours.org/career-decision/article/?utm_source=The+EA+Newsletter&utm_campaign=04ca3c2244-EMAIL_CAMPAIGN_2019_04_03_04_26&utm_medium=email&utm_term=0_51c1df13ac-04ca3c2244-318697649"
+    , "80000hours.org/career-decision/article",
+    ),
 ])
 def test(url, expected):
     assert canonify(url) == expected
