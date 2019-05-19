@@ -47,8 +47,6 @@ def canonify(url: str) -> str:
     parts = urlsplit(url)
     domain = canonify_domain(parts.netloc)
 
-    print(parts)
-
     # TODO need to sort them regardless? so need a dummy spec?
     query = parts.query
     frag = parts.fragment
@@ -58,7 +56,6 @@ def canonify(url: str) -> str:
         if spec.query_keep is not None:
             qq = [(k, v) for k, v in qq if k in spec.query_keep]
         query = urlencode(qq)
-        pass
 
 
     uns = urlunsplit((
@@ -90,6 +87,12 @@ import pytest # type: ignore
     ),
     ( "https://en.wikipedia.org/wiki/tendon#cite_note-14"
     , "en.wikipedia.org/wiki/tendon#cite_note-14"
+    ),
+    # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
+    # , "youtube.com/watch?v=nyc6RJEEe0U", # TODO not sure how realistic...
+    # )
+    ( "https://physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
+    , "physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
     )
 ])
 def test(url, expected):
