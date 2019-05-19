@@ -55,6 +55,10 @@ class TakeoutHTMLParser(HTMLParser):
                 hr = unquote(hr) # TODO not sure about that...
             assert self.url is None; self.url = hr
 
+    # search example:
+    # Visited Emmy Noether - Wikipedia
+    # Dec 17, 2018, 8:16:18 AM UTC
+
     # youtube example:
     # Watched Jamie xx - Gosh
     # JamiexxVEVO
@@ -115,4 +119,17 @@ def test_youtube():
         assert len(collected) > 100
         assert (datetime(year=2018, month=6, day=21, hour=5, minute=48, second=34, tzinfo=pytz.utc), 'https://www.youtube.com/watch?v=hTGJfRPLe08') in collected
 
+def test_search():
+    collected = _helper(ARCHIVES[1], 'Takeout/My Activity/Search/MyActivity.html')
+    assert len(collected) > 100
 
+    # Visited Emmy Noether - Wikipedia
+    # Dec 17, 2018, 8:16:18 AM UTC
+    found = False
+    edt = datetime(year=2018, month=12, day=17, hour=8, minute=16, second=18, tzinfo=pytz.utc)
+    eurl = 'https://en.wikipedia.org/wiki/Emmy_Noether'
+    for dt, url in collected:
+        if dt == edt and url.startswith(eurl):
+            found = True
+
+    assert found
