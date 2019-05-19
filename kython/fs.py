@@ -31,6 +31,21 @@ def traverse(root: PathIsh, handler, logger=None):
             logger.info('skipping %s', root) # TODO reason would be nice?
             dirs[:] = []
 
+# TODO if returns None, that means REC?
+# def handler2(path: Path, is_dir: bool):
+#     pass
+
+def traverse2(root: PathIsh, handler): # TODO default handler?? just traverse all??
+    root = Path(root)
+    assert root.is_dir() # TODO Not sure
+    for r, dirs, files in os.walk(root, followlinks=True):
+        rr = Path(r)
+        res = handler(rr, is_dir=True)
+        if res == Go.BAIL:
+            dirs[:] = []
+        else:
+            for f in files:
+                handler(rr / f, is_dir=False)
 
 
 def test(tmp_path):
