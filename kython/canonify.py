@@ -28,7 +28,7 @@ def canonify_domain(dom: str):
     #     'www.youtube.com': 'youtube.com',
     # }.get(dom, dom)
 
-from typing import NamedTuple, Collection, Optional
+from typing import NamedTuple, Set, Optional
 
 
 default_qremove = {
@@ -43,14 +43,16 @@ default_qremove = {
 }
 
 class Spec(NamedTuple):
-    qkeep  : Optional[Collection[str]] = None
-    qremove: Optional[Collection[str]] = None
+    qkeep  : Optional[Set[str]] = None
+    qremove: Optional[Set[str]] = None
 
     def keep_query(self, q: str):
         keep = False
         remove = False
+        # pylint: disable=unsupported-membership-test
         if self.qkeep is not None and q in self.qkeep:
             keep = True
+        # pylint: disable=unsupported-membership-test
         if self.qremove is not None and q in self.qremove:
             remove = True
         if keep and remove:
@@ -62,9 +64,10 @@ class Spec(NamedTuple):
         return True
         # TODO basically, at this point only qremove matters
 
-    def make(qremove=None, **kwargs):
+    @classmethod
+    def make(cls, qremove=None, **kwargs):
         qr = default_qremove.union(qremove or {})
-        return Spec(qremove=qr, **kwargs)
+        return cls(qremove=qr, **kwargs)
 
 S = Spec.make
 
