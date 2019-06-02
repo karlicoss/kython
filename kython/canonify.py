@@ -19,10 +19,20 @@ def try_cutr(suffix, s):
     else:
         return s
 
+dom_subst = [
+    ('m.youtube.', 'youtube.'),
+]
 
 def canonify_domain(dom: str):
     # TODO perhaps not necessary now that I'm checking suffixes??
-    dom = try_cutl('www.', dom)
+    for st in ('www.', 'amp.'):
+        dom = try_cutl(st, dom)
+
+    for start, repl in dom_subst:
+        if dom.startswith(start):
+            dom = repl + dom[len(start):]
+            break
+
     return dom
 
 from typing import NamedTuple, Set, Optional
@@ -224,6 +234,14 @@ import pytest # type: ignore
     , "withouthspec.co.uk/rooms/16867952"
     ),
 
+    ( "m.youtube.com/watch?v=Zn6gV2sdl38"
+    , "youtube.com/watch?v=Zn6gV2sdl38"
+    ),
+
+    ( "amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality"
+    , "theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality",
+    )
+
     # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # , "youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # ),
@@ -237,17 +255,14 @@ import pytest # type: ignore
 def test(url, expected):
     assert canonify(url) == expected
     # TODO github queries
+    # TODO git+https://github.com/expectocode/telegram-export@master
     # TODO  again, for that actually sequence would be good...
 
     # TODO "https://twitter.com/search?q=pinboard search&src=typd"
 
     # TODO https://www.zalando-lounge.ch/#/
-    # TODO amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality
-    # TODO m.youtube.com/watch?v=Zn6gV2sdl38
     # TODO m.facebook.com
     # TODO         [R('^(youtube|urbandictionary|tesco|scottaaronson|answers.yahoo.com|code.google.com)') , None],
-
-    # TODO git+https://github.com/expectocode/telegram-export@master
 
 
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
