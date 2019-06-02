@@ -43,9 +43,12 @@ default_qremove = {
     'usg',
 }
 
+
+# TODO perhaps, decide if fragment is meaningful (e.g. wiki) or random sequence of letters?
 class Spec(NamedTuple):
     qkeep  : Optional[Set[str]] = None
     qremove: Optional[Set[str]] = None
+    fkeep  : bool = False
 
     def keep_query(self, q: str):
         keep = False
@@ -84,24 +87,27 @@ specs = {
     'facebook.com': S(
         qkeep={'fbid'},
         qremove={'set', 'type'},
-    )
+    ),
+    'physicstravelguide.com': S(fkeep=True), # TODO instead, pass fkeep marker object for shorter spec?
+    'wikipedia.org': S(fkeep=True),
+    'scottaaronson.com': S(fkeep=True),
 }
 
 _def_spec = S()
+# TODO use cache?
 def get_spec(dom: str) -> Spec:
+    # ugh. ugly way of getting stuff without subdomain...
+    dom = '.'.join(dom.split('.')[-2:])
     return specs.get(dom, _def_spec)
 
 
 def canonify(url: str) -> str:
     parts = urlsplit(url)
     domain = canonify_domain(parts.netloc)
-
-    query = parts.query
-    frag = parts.fragment
     spec = get_spec(domain)
 
-    # print(parts)
-    # print(spec)
+    query = parts.query
+    frag = parts.fragment if spec.fkeep else ''
 
     qq = parse_qsl(query)
     qq = [(k, v) for k, v in qq if spec.keep_query(k)]
@@ -168,9 +174,13 @@ import pytest # type: ignore
     ),
     ( "https://en.wikipedia.org/wiki/Dinic%27s_algorithm"
     , "en.wikipedia.org/wiki/Dinic%27s_algorithm"
-    )
+    ),
 
-    # TODO shit. is that normal???
+    ( "zoopla.co.uk/to-rent/details/42756337#D0zlBWeD4X85odsR.97"
+    , "zoopla.co.uk/to-rent/details/42756337"
+    ),
+
+    # TODO shit. is that normal??? perhaps need to manually move fragment?
     # SplitResult(scheme='https', netloc='unix.stackexchange.com', path='/questions/171603/convert-file-contents-to-lower-case/171708', query='', fragment='171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ')
     # ( "https://unix.stackexchange.com/questions/171603/convert-file-contents-to-lower-case/171708#171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ"
     # , "unix.stackexchange.com/questions/171603/convert-file-contents-to-lower-case/171708#171708"
