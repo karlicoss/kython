@@ -83,7 +83,7 @@ S = Spec.make
 specs = {
     'youtube.com': S(
         qkeep={'v'}, # TODO FIXME frozenset
-        qremove={'list', 'index', 't'} # TODO not so sure about t
+        qremove={'list', 'index', 'feature', 't'} # TODO not so sure about t
     ),
     'github.com': S(
         qkeep={'q'},
@@ -120,6 +120,10 @@ def get_spec(dom: str) -> Spec:
 
 def canonify(url: str) -> str:
     parts = urlsplit(url)
+    if parts.scheme == '':
+        # if scheme is missing it doesn't parse netloc properly...
+        parts = urlsplit('http://' + url)
+
     domain = canonify_domain(parts.netloc)
     spec = get_spec(domain)
 
@@ -168,6 +172,9 @@ import pytest # type: ignore
     # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
     # , "youtube.com/watch?v=nyc6RJEEe0U", # TODO not sure how realistic...
     # )
+    ( "youtube.com/watch?v=wHrCkyoe72U&feature=share"
+    , "youtube.com/watch?v=wHrCkyoe72U"
+    ),
     ( "https://physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
     , "physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
     ),
@@ -215,6 +222,8 @@ def test(url, expected):
     # TODO "https://twitter.com/search?q=pinboard search&src=typd"
 
     # TODO https://www.zalando-lounge.ch/#/
+    # TODO amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality
+
 
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
