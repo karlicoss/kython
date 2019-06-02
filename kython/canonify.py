@@ -41,6 +41,7 @@ from typing import NamedTuple, Set, Optional
 default_qremove = {
     'utm_source',
     'utm_campaign',
+    'utm_content',
     'utm_medium',
     'utm_term',
 
@@ -50,6 +51,7 @@ default_qremove = {
 
     # google language??
     'hl',
+    'vl',
 }
 
 
@@ -93,8 +95,16 @@ S = Spec.make
 # TODO perhaps these can be machine learnt from large set of urls?
 specs = {
     'youtube.com': S(
-        qkeep={'v'}, # TODO FIXME frozenset
-        qremove={'time_continue', 'list', 'index', 'feature', 't', 'lc'} # TODO not so sure about t
+        # TODO search_query?
+        qkeep={
+            'list', # TODO hmm. list is kinda important for playlist urls...
+            'v',
+        }, # TODO FIXME frozenset
+        qremove={
+            'time_continue', 'index', 'feature', 't', 'lc', 'app', 'start_radio', 'pbjreload', 'annotation_id',
+            'flow', 'sort', 'view',
+            'enablejsapi', 'wmode', 'html5', 'autoplay', 'ar',
+        } # TODO not so sure about t
     ),
     # TODO shit. for playlist don't need to remove 'list'...
 
@@ -105,7 +115,11 @@ specs = {
     ),
     'facebook.com': S(
         qkeep={'fbid', 'story_fbid'},
-        qremove={'set', 'type', 'fref', 'locale2', '__tn__', 'notif_t'},
+        qremove={
+            'set', 'type', 'fref', 'locale2', '__tn__', 'notif_t', 'ref', 'notif_id', 'hc_ref', 'acontext', 'multi_permalinks', 'no_hist', 'next', 'bucket_id',
+            'eid',
+            'tab', 'active_tab',
+        },
     ),
     'physicstravelguide.com': S(fkeep=True), # TODO instead, pass fkeep marker object for shorter spec?
     'wikipedia.org': S(fkeep=True),
@@ -184,7 +198,7 @@ import pytest # type: ignore
     # ),
 
     ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
-    , "youtube.com/watch?v=1NHbPN9pNPM" # TODO not so sure about &t, it's sort of useful
+    , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
     ),
 
     # TODO FIXME fragment handling
@@ -282,6 +296,20 @@ def test(url, expected):
     # TODO
 # amazon.co.uk/gp/offer-listing/B00525XKL4/ref=dp_olp_new
 # amazon.co.uk/gp/offer-listing/B00525XKL4/ref=olp_twister_child
+
+    # TODO 
+    # en.wikipedia.org/wiki/S&P_500_Index
+
+
+    # TODO
+    # google.co.uk/maps/place/Hackney+Bureau/@51.5293789,-0.0527919,16.88z/data=!bla-bla!-bla
+
+
+    # TODO 
+    # perhaps, disable utf8 everywhere?
+    # github.com/search?utf8=%E2%9C%93&q=%22My+Clippings.txt%22
+
+
 
 
 
