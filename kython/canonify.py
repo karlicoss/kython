@@ -160,6 +160,9 @@ import pytest # type: ignore
     ( "https://news.ycombinator.com/item?id=12172351"
     , "news.ycombinator.com/item?id=12172351"
     ),
+    ( "https://urbandictionary.com/define.php?term=Belgian%20Whistle"
+    , "urbandictionary.com/define.php?term=Belgian+Whistle" # TODO not sure if automatic conversion of %20 to + is good
+    ),
 
     # TODO shit. is that normal???
     # SplitResult(scheme='https', netloc='unix.stackexchange.com', path='/questions/171603/convert-file-contents-to-lower-case/171708', query='', fragment='171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ')
@@ -175,6 +178,7 @@ def test(url, expected):
     # TODO "https://twitter.com/search?q=pinboard search&src=typd"
 
     # TODO https://www.zalando-lounge.ch/#/
+
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
 def main():
