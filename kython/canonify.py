@@ -84,7 +84,7 @@ S = Spec.make
 specs = {
     'youtube.com': S(
         qkeep={'v'}, # TODO FIXME frozenset
-        qremove={'list', 'index', 'feature', 't'} # TODO not so sure about t
+        qremove={'time_continue', 'list', 'index', 'feature', 't'} # TODO not so sure about t
     ),
     # TODO shit. for playlist don't need to remove 'list'...
 
@@ -183,7 +183,7 @@ import pytest # type: ignore
     # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
     # , "youtube.com/watch?v=nyc6RJEEe0U", # TODO not sure how realistic...
     # )
-    ( "youtube.com/watch?v=wHrCkyoe72U&feature=share"
+    ( "youtube.com/watch?v=wHrCkyoe72U&feature=share&time_continue=6"
     , "youtube.com/watch?v=wHrCkyoe72U"
     ),
 
@@ -245,6 +245,9 @@ def test(url, expected):
     # TODO amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality
     # TODO m.youtube.com/watch?v=Zn6gV2sdl38
     # TODO m.facebook.com
+    # TODO         [R('^(youtube|urbandictionary|tesco|scottaaronson|answers.yahoo.com|code.google.com)') , None],
+
+    # TODO git+https://github.com/expectocode/telegram-export@master
 
 
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
