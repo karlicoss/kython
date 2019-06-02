@@ -94,7 +94,7 @@ S = Spec.make
 specs = {
     'youtube.com': S(
         qkeep={'v'}, # TODO FIXME frozenset
-        qremove={'time_continue', 'list', 'index', 'feature', 't'} # TODO not so sure about t
+        qremove={'time_continue', 'list', 'index', 'feature', 't', 'lc'} # TODO not so sure about t
     ),
     # TODO shit. for playlist don't need to remove 'list'...
 
@@ -105,14 +105,15 @@ specs = {
     ),
     'facebook.com': S(
         qkeep={'fbid', 'story_fbid'},
-        qremove={'set', 'type', 'fref', 'locale2'},
+        qremove={'set', 'type', 'fref', 'locale2', '__tn__', 'notif_t'},
     ),
     'physicstravelguide.com': S(fkeep=True), # TODO instead, pass fkeep marker object for shorter spec?
     'wikipedia.org': S(fkeep=True),
-    'scottaaronson.com': S(qkeep={'p'}, qremove={}, fkeep=True),
+    'scottaaronson.com'  : S(qkeep={'p'}, qremove={}, fkeep=True),
     'urbandictionary.com': S(qkeep={'term'}, qremove={}),
-    'ycombinator.com': S(qkeep={'id'}, qremove={}),
-    'play.google.com': S(qkeep={'id'}, qremove={}),
+    'ycombinator.com'    : S(qkeep={'id'}, qremove={}),
+    'play.google.com'    : S(qkeep={'id'}, qremove={}),
+    'answers.yahoo.com'  : S(qkeep={'qid'}, qremove={}),
 }
 
 _def_spec = S()
@@ -240,7 +241,11 @@ import pytest # type: ignore
 
     ( "amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality"
     , "theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality",
-    )
+    ),
+
+    ( "https://answers.yahoo.com/question/index?qid=20071101131442AAk9bGp"
+    , "answers.yahoo.com/question/index?qid=20071101131442AAk9bGp"
+    ),
 
     # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # , "youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
@@ -255,6 +260,11 @@ import pytest # type: ignore
 def test(url, expected):
     assert canonify(url) == expected
     # TODO github queries
+# github.com/search?l=Python&q=reddit+backup
+# github.com/search?p=3&q=ipynb+language%3AHaskell
+# github.com/search?q=kobo+ExtraData
+# github.com/search?q=what-universal-human-experiences-are-you-missing-without-realizing-it
+
     # TODO git+https://github.com/expectocode/telegram-export@master
     # TODO  again, for that actually sequence would be good...
 
@@ -263,6 +273,17 @@ def test(url, expected):
     # TODO https://www.zalando-lounge.ch/#/
     # TODO m.facebook.com
     # TODO         [R('^(youtube|urbandictionary|tesco|scottaaronson|answers.yahoo.com|code.google.com)') , None],
+
+    # TODO
+    # youtube.com/user/magauchsein/playlists?sort=dd&view=50&shelf_id=14
+    # youtube.com/user/TheChemlife/videos?view=0&sort=p&flow=grid
+
+
+    # TODO
+# amazon.co.uk/gp/offer-listing/B00525XKL4/ref=dp_olp_new
+# amazon.co.uk/gp/offer-listing/B00525XKL4/ref=olp_twister_child
+
+
 
 
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
