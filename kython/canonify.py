@@ -50,7 +50,12 @@ class Spec(NamedTuple):
     qremove: Optional[Set[str]] = None
     fkeep  : bool = False
 
-    def keep_query(self, q: str):
+    def keep_query(self, q: str) -> bool:
+        # by default drop all, only do something special in case of specs present
+        # it's better choice for default since if it's too unified user would notice it, but not vice versa
+        if self.qkeep is None and self.qremove is None:
+            return False
+
         keep = False
         remove = False
         # pylint: disable=unsupported-membership-test
@@ -69,12 +74,12 @@ class Spec(NamedTuple):
         # TODO basically, at this point only qremove matters
 
     @classmethod
-    def make(cls, qremove=None, **kwargs):
-        qr = default_qremove.union(qremove or {})
-        return cls(qremove=qr, **kwargs)
+    def make(cls, **kwargs):
+        return cls(**kwargs)
 
 S = Spec.make
 
+# TODO perhaps these can be machine learnt from large set of urls?
 specs = {
     'youtube.com': S(
         qkeep={'v'}, # TODO FIXME frozenset
@@ -90,15 +95,27 @@ specs = {
     ),
     'physicstravelguide.com': S(fkeep=True), # TODO instead, pass fkeep marker object for shorter spec?
     'wikipedia.org': S(fkeep=True),
-    'scottaaronson.com': S(fkeep=True),
+    'scottaaronson.com': S(qkeep={'p'}, qremove={}, fkeep=True),
+    'urbandictionary.com': S(qkeep={'term'}, qremove={}),
+    'ycombinator.com': S(qkeep={'id'}, qremove={}),
+    'play.google.com': S(qkeep={'id'}, qremove={}),
 }
 
 _def_spec = S()
 # TODO use cache?
 def get_spec(dom: str) -> Spec:
-    # ugh. ugly way of getting stuff without subdomain...
-    dom = '.'.join(dom.split('.')[-2:])
-    return specs.get(dom, _def_spec)
+    # ugh. a bit ugly way of getting stuff without subdomain...
+    parts = dom.split('.')
+    cur = None
+    for p in reversed(parts):
+        if cur is None:
+            cur = p
+        else:
+            cur = p + '.' + cur
+        sp = specs.get(cur)
+        if sp is not None:
+            return sp
+    return _def_spec
 
 
 def canonify(url: str) -> str:
@@ -178,6 +195,10 @@ import pytest # type: ignore
 
     ( "zoopla.co.uk/to-rent/details/42756337#D0zlBWeD4X85odsR.97"
     , "zoopla.co.uk/to-rent/details/42756337"
+    ),
+
+    ( "withouthspec.co.uk/rooms/16867952?guests=2&adults=2&location=Berlin%2C+Germany&check_in=2017-08-16&check_out=2017-08-20"
+    , "withouthspec.co.uk/rooms/16867952"
     ),
 
     # TODO shit. is that normal??? perhaps need to manually move fragment?
