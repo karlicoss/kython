@@ -41,6 +41,9 @@ default_qremove = {
     # https://moz.com/blog/decoding-googles-referral-string-or-how-i-survived-secure-search
     # some google referral
     'usg',
+
+    # google language??
+    'hl',
 }
 
 
@@ -56,13 +59,15 @@ class Spec(NamedTuple):
         if self.qkeep is None and self.qremove is None:
             return False
 
+        qremove = default_qremove.union(self.qremove or {})
+
         keep = False
         remove = False
         # pylint: disable=unsupported-membership-test
         if self.qkeep is not None and q in self.qkeep:
             keep = True
         # pylint: disable=unsupported-membership-test
-        if self.qremove is not None and q in self.qremove:
+        if q in qremove:
             remove = True
         if keep and remove:
             return True # TODO need a warning
@@ -90,8 +95,8 @@ specs = {
         qremove={'o', 's', 'type'},
     ),
     'facebook.com': S(
-        qkeep={'fbid'},
-        qremove={'set', 'type'},
+        qkeep={'fbid', 'story_fbid'},
+        qremove={'set', 'type', 'fref'},
     ),
     'physicstravelguide.com': S(fkeep=True), # TODO instead, pass fkeep marker object for shorter spec?
     'wikipedia.org': S(fkeep=True),
@@ -187,9 +192,11 @@ import pytest # type: ignore
     ( "https://www.facebook.com/photo.php?fbid=24147689823424326&set=pcb.2414778905423667&type=3&theater"
     , "facebook.com/photo.php?fbid=24147689823424326"
     ),
-    ( "https://play.google.com/store/apps/details?id=com.faultexception.reader&whatever"
+    ( "https://play.google.com/store/apps/details?id=com.faultexception.reader&hl=en"
     , "play.google.com/store/apps/details?id=com.faultexception.reader"
     ),
+    # TODO it also got &p= parameter, which refers to page... not sure how to handle this
+    # news.ycombinator.com/item?id=15451442&p=2
     ( "https://news.ycombinator.com/item?id=12172351"
     , "news.ycombinator.com/item?id=12172351"
     ),
@@ -223,6 +230,7 @@ def test(url, expected):
 
     # TODO https://www.zalando-lounge.ch/#/
     # TODO amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality
+    # TODO m.youtube.com/watch?v=Zn6gV2sdl38
 
 
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
