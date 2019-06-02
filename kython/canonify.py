@@ -149,10 +149,16 @@ import pytest # type: ignore
     , "github.com/search?q=track"
     ),
     ( "https://80000hours.org/career-decision/article/?utm_source=The+EA+Newsletter&utm_campaign=04ca3c2244-EMAIL_CAMPAIGN_2019_04_03_04_26&utm_medium=email&utm_term=0_51c1df13ac-04ca3c2244-318697649"
-    , "80000hours.org/career-decision/article",
+    , "80000hours.org/career-decision/article"
     ),
     ( "https://www.facebook.com/photo.php?fbid=24147689823424326&set=pcb.2414778905423667&type=3&theater"
-    , "facebook.com/photo.php?fbid=24147689823424326",
+    , "facebook.com/photo.php?fbid=24147689823424326"
+    ),
+    ( "https://play.google.com/store/apps/details?id=com.faultexception.reader&whatever"
+    , "play.google.com/store/apps/details?id=com.faultexception.reader"
+    ),
+    ( "https://news.ycombinator.com/item?id=12172351"
+    , "news.ycombinator.com/item?id=12172351"
     ),
 
     # TODO shit. is that normal???
@@ -164,15 +170,11 @@ import pytest # type: ignore
 def test(url, expected):
     assert canonify(url) == expected
     # TODO github queries
-    # TODO hackernews?
-    # TODO scott aaronson
     # TODO  again, for that actually sequence would be good...
 
     # TODO "https://twitter.com/search?q=pinboard search&src=typd"
 
     # TODO https://www.zalando-lounge.ch/#/
-
-    # TODO https://unix.stackexchange.com/questions/171603/convert-file-contents-to-lower-case/171708#171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
 def main():
