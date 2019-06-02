@@ -105,7 +105,9 @@ def canonify(url: str) -> str:
 
     qq = parse_qsl(query)
     qq = [(k, v) for k, v in qq if spec.keep_query(k)]
-    query = urlencode(qq, quote_via=urllib.parse.quote) # by default it replaces %20 with +; not sure if we want that...
+    # TODO still not sure what we should do..
+    # quote_plus replaces %20 with +, not sure if we want it...
+    query = urlencode(qq, quote_via=urllib.parse.quote_plus)
 
     uns = urlunsplit((
         '',
@@ -162,7 +164,7 @@ import pytest # type: ignore
     , "news.ycombinator.com/item?id=12172351"
     ),
     ( "https://urbandictionary.com/define.php?term=Belgian%20Whistle"
-    , "urbandictionary.com/define.php?term=Belgian%20Whistle"
+    , "urbandictionary.com/define.php?term=Belgian+Whistle"
     ),
     ( "https://en.wikipedia.org/wiki/Dinic%27s_algorithm"
     , "en.wikipedia.org/wiki/Dinic%27s_algorithm"
