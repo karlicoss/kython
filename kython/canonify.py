@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import urllib.parse
 from urllib.parse import urlsplit, parse_qsl, urlunsplit, parse_qs, urlencode
 
 # this has some benchmark, but quite a few librarires seem unmaintained, sadly
@@ -104,7 +105,7 @@ def canonify(url: str) -> str:
 
     qq = parse_qsl(query)
     qq = [(k, v) for k, v in qq if spec.keep_query(k)]
-    query = urlencode(qq)
+    query = urlencode(qq, quote_via=urllib.parse.quote) # by default it replaces %20 with +; not sure if we want that...
 
     uns = urlunsplit((
         '',
@@ -161,8 +162,11 @@ import pytest # type: ignore
     , "news.ycombinator.com/item?id=12172351"
     ),
     ( "https://urbandictionary.com/define.php?term=Belgian%20Whistle"
-    , "urbandictionary.com/define.php?term=Belgian+Whistle" # TODO not sure if automatic conversion of %20 to + is good
+    , "urbandictionary.com/define.php?term=Belgian%20Whistle"
     ),
+    ( "https://en.wikipedia.org/wiki/Dinic%27s_algorithm"
+    , "en.wikipedia.org/wiki/Dinic%27s_algorithm"
+    )
 
     # TODO shit. is that normal???
     # SplitResult(scheme='https', netloc='unix.stackexchange.com', path='/questions/171603/convert-file-contents-to-lower-case/171708', query='', fragment='171708&usg=AFQjCNEFCGqCAa4P4Zlu2x11bThJispNxQ')
