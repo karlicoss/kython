@@ -13,7 +13,8 @@ def trigger_run(cmd: str):
     os.killpg(os.getpgid(p.pid), signal.SIGTERM) # in case it forks
     time.sleep(1) # wait till it dies
 
-def patch_py(path, property, new_value):
+def patch_py(pathish, property, new_value):
+    path = str(pathish)
     cmd = "'s/^{} = .*/{} = {}/g'".format(property, property, new_value)
     print(cmd)
     import subprocess
