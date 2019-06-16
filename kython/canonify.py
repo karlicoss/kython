@@ -391,8 +391,9 @@ def test_same_norm(urls):
         assert c0 == c, f'Expected {u0} and {u} to be same canonically; got {c0} and {c} instead'
 
 def test_error():
-    # TODO not sure how to trigger it...
-    pass
+    # TODO should have two modes? defensive just returns None or falls back to original url? not sure..
+    with pytest.raises(CanonifyException):
+        canonify('  +743535, fewfwf@gmail.com')
 
 
 # TODO chrome-extension://fdpohaocaechififmbbbbbknoalclacl ??
