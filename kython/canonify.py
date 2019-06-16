@@ -178,13 +178,21 @@ def _prenormalise(url: str) -> str:
 
 # TODO ok, I suppose even though we can't distinguish + and space, likelihood of them overlapping in normalised url is so low, that it doesn't matter much
 # TODO actually, might be easier for most special charaters
-def _canonify(url: str) -> str:
+def canonify(url: str) -> str:
+    # TODO check for invalid charaters?
     url = _prenormalise(url)
 
-    parts = urlsplit(url)
+    try:
+        parts = urlsplit(url)
+    except Exception as e:
+        raise CanonifyException(url) from e
+
     if parts.scheme == '':
         # if scheme is missing it doesn't parse netloc properly...
-        parts = urlsplit('http://' + url)
+        try:
+            parts = urlsplit('http://' + url)
+        except Exception as e:
+            raise CanonifyException(url) from e
 
     domain = canonify_domain(parts.netloc)
     spec = get_spec(domain)
@@ -214,14 +222,6 @@ def _canonify(url: str) -> str:
     uns = try_cutl('//', uns)  # // due to dummy protocol
     uns = try_cutr('/', uns) # not sure if there is a better way
     return uns
-
-
-def canonify(url: str) -> str:
-    try:
-        return _canonify(url)
-    except Exception as e:
-        raise CanonifyException(url) from e
-
 
 # TODO should actually understand 'sequences'?
 # e.g.
