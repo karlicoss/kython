@@ -41,7 +41,7 @@ class ToFromJson:
         return self.cls(**res)
 
 from typing import Sequence, Any, Dict, List, Union, Tuple, cast
-JPath = Tuple[Union[str, int]]
+
 
 JDict = Dict[str, Any] # TODO not sure if we can do recursive..
 JList = List[Any]
@@ -49,6 +49,9 @@ JPrim = Union[str, int, float] # , type(None)]
 
 Json = Union[JDict, JList, JPrim]
 
+JPathPart = Tuple[Json, Union[str, int]]
+
+JPath = Tuple[JPathPart, ...]
 
 
 class JsonProcessor:
@@ -61,15 +64,15 @@ class JsonProcessor:
     def do_dict(self, js: JDict, jp: JPath) -> None:
         self.handle_dict(js, jp)
         for k, v in js.items():
-            path = cast(JPath, jp + (k, ))
+            path = cast(JPath, jp + ((js, k), ))
             self._do(v, path)
 
     def do_list(self, js: JList, jp: JPath) -> None:
         for i, x in enumerate(js):
-            path = cast(JPath, jp + (i, ))
+            path = cast(JPath, jp + ((js, i), ))
             self._do(x, path)
 
-    def _do(self, js: Json, path: JPath):
+    def _do(self, js: Json, path: JPath) -> None:
         if isinstance(js, dict): # TODO have functions for dict like, list like etc
             self.do_dict(js, path)
         elif isinstance(js, list):
@@ -81,7 +84,7 @@ class JsonProcessor:
         else:
             raise RuntimeError(f'unexpected item {js} of type {type(js)}')
 
-    def run(self, js: Json):
+    def run(self, js: Json) -> None:
         path = cast(JPath, ())
         self._do(js, path)
 
@@ -114,7 +117,8 @@ def test_json_processor():
     [h1] = handled
     (link, path) = h1
     assert link == 'http://reddit.com'
-    assert path == ('x', 'y', 1, 'link')
+    pp = [p[1] for p in path]
+    assert pp == ['x', 'y', 1, 'link']
 
 
 if __name__ == '__main__':
