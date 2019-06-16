@@ -57,19 +57,27 @@ JPath = Tuple[JPathPart, ...]
 class JsonProcessor:
     SKIP = object()
 
-    def handle_dict(self, js: JDict, jp: JPath) -> None:
+    def handle_dict(self, js: JDict, jp: JPath) -> Any:
         pass
 
-    def handle_str(self, js: str, jp: JPath) -> None:
+    def handle_list(self, js: JList, jp: JPath) -> Any:
+        pass
+
+    def handle_str(self, js: str, jp: JPath) -> Any:
         pass
 
     def do_dict(self, js: JDict, jp: JPath) -> None:
-        self.handle_dict(js, jp)
+        res = self.handle_dict(js, jp)
+        if res is self.SKIP:
+            return
         for k, v in js.items():
             path = cast(JPath, jp + ((js, k), ))
             self._do(v, path)
 
     def do_list(self, js: JList, jp: JPath) -> None:
+        res = self.handle_list(js, jp)
+        if res is self.SKIP:
+            return
         for i, x in enumerate(js):
             path = cast(JPath, jp + ((js, i), ))
             self._do(x, path)
@@ -99,9 +107,11 @@ class JsonProcessor:
 def test_json_processor():
     handled = []
     class Proc(JsonProcessor):
-        def handle_str(self, value: str, path):
+        def handle_dict(self, value: JDict, path):
             if 'skipme' in self.kpath(path):
                 return JsonProcessor.SKIP
+
+        def handle_str(self, value: str, path):
             if 'http' in value:
                 handled.append((value, path))
 
