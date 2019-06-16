@@ -166,9 +166,16 @@ def _quote_path(path: str) -> str:
     return '/'.join(nparts)
 
 
+def _prenormalise(url: str) -> str:
+    # sometimes urls contain & right after / for some reason, and urlsplit chokes over it
+    # e.g. in google takeout
+    # not sure how safe it in general...
+    return url.replace('/&', '?')
+
 # TODO ok, I suppose even though we can't distinguish + and space, likelihood of them overlapping in normalised url is so low, that it doesn't matter much
 # TODO actually, might be easier for most special charaters
 def _canonify(url: str) -> str:
+    url = _prenormalise(url)
 
     parts = urlsplit(url)
     if parts.scheme == '':
@@ -290,7 +297,6 @@ import pytest # type: ignore
     ( "https://answers.yahoo.com/question/index?qid=20071101131442AAk9bGp"
     , "answers.yahoo.com/question/index?qid=20071101131442AAk9bGp"
     ),
-
     ( "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%e2%80%93-2010"
     , "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%E2%80%93-2010"
     ),
@@ -361,6 +367,11 @@ def test(url, expected):
     {
         "launchpad.net/ubuntu/%2Bsource/okular",
         "launchpad.net/ubuntu/+source/okular",
+    },
+    {
+        "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-–-2010",
+        "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%e2%80%93-2010",
+        "https://flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%e2%80%93-2010/&usg=AFQjCNEZsEGz9rqpWqlFXR5Tc7pkCKY5sQ",
     },
 ])
 def test_same_norm(urls):
