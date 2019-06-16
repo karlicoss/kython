@@ -67,6 +67,7 @@ class JsonProcessor:
         pass
 
     def do_dict(self, js: JDict, jp: JPath) -> None:
+        # pylint: disable=assignment-from-no-return
         res = self.handle_dict(js, jp)
         if res is self.SKIP:
             return
@@ -75,6 +76,7 @@ class JsonProcessor:
             self._do(v, path)
 
     def do_list(self, js: JList, jp: JPath) -> None:
+        # pylint: disable=assignment-from-no-return
         res = self.handle_list(js, jp)
         if res is self.SKIP:
             return
@@ -100,7 +102,7 @@ class JsonProcessor:
 
     @classmethod
     def kpath(cls, path: JPath) -> Tuple[JPathPart, ...]:
-        return (x[1] for x in path) # type: ignore
+        return tuple(x[1] for x in path) # type: ignore
 
 # TODO path is a sequence of jsons and keys?
 
