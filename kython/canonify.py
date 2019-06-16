@@ -150,21 +150,24 @@ class CanonifyException(Exception):
     pass
 
 # TODO not so sure if it's better to quote or not?
-quote_via   = urllib.parse.quote_plus
-unquote_via = urllib.parse.unquote_plus
+quote_via   = urllib.parse.quote
+unquote_via = urllib.parse.unquote
 
 
 def _quote_path(path: str) -> str:
     parts = path.split('/')
     nparts = []
     for p in parts:
-        if '%' in p: # some urls are partially encoded... perhaps canonify needs hints indicating if url needs normalising or not
+        # TODO maybe re.match?
+        if '%' in p or '+' in p: # some urls are partially encoded... perhaps canonify needs hints indicating if url needs normalising or not
             p = unquote_via(p)
         # TODO safe argumnet?
         nparts.append(quote_via(p))
     return '/'.join(nparts)
 
 
+# TODO ok, I suppose even though we can't distinguish + and space, likelihood of them overlapping in normalised url is so low, that it doesn't matter much
+# TODO actually, might be easier for most special charaters
 def _canonify(url: str) -> str:
 
     parts = urlsplit(url)
@@ -262,7 +265,7 @@ import pytest # type: ignore
     , "news.ycombinator.com/item?id=12172351"
     ),
     ( "https://urbandictionary.com/define.php?term=Belgian%20Whistle"
-    , "urbandictionary.com/define.php?term=Belgian+Whistle"
+    , "urbandictionary.com/define.php?term=Belgian%20Whistle"
     ),
     ( "https://en.wikipedia.org/wiki/Dinic%27s_algorithm"
     , "en.wikipedia.org/wiki/Dinic%27s_algorithm"
@@ -295,6 +298,9 @@ import pytest # type: ignore
     , "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%E2%80%93-2010"
     ),
 
+    # ( "gwern.net/DNB+FAQ"
+    # , "TODO" # ???
+    # ),
     # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # , "youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # ),
@@ -343,13 +349,34 @@ def test(url, expected):
     # perhaps, disable utf8 everywhere?
     # github.com/search?utf8=%E2%9C%93&q=%22My+Clippings.txt%22
 
+    # TODO FIXME fragment handling
+    # ( "https://www.scottaaronson.com/blog/?p=3167#comment-1731882"
+    # , "scottaaronson.com/blog/?p=3167#comment-1731882"
+    # ),
+    # ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
+    # , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
+    # ),
 
+@pytest.mark.parametrize("urls", [
+    {
+        "launchpad.net/ubuntu/%2Bsource/okular",
+        "launchpad.net/ubuntu/+source/okular",
+    },
+])
+def test_same_norm(urls):
+    urls = list(sorted(urls))
+    u0 = urls[0]
+    c0 = canonify(u0)
+    for u in urls[1:]:
+        c = canonify(u)
+        assert c0 == c, f'Expected {u0} and {u} to be same canonically; got {c0} and {c} instead'
 
 def test_error():
     # TODO not sure how to trigger it...
     pass
 
 
+# TODO chrome-extension://fdpohaocaechififmbbbbbknoalclacl ??
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
 def main():
@@ -357,3 +384,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# TODO hmm, it's actually sort of fingerprinter... so maybe that's what I should call it
