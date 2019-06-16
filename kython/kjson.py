@@ -40,3 +40,74 @@ class ToFromJson:
                 res[k] = v
         return self.cls(**res)
 
+from typing import Sequence, Any, Dict, List, Union
+JPath = Sequence[str]
+
+JDict = Dict[str, Any] # TODO not sure if we can do recursive..
+JList = List[Any]
+JPrim = Union[str, int, float] # , type(None)]
+
+Json = Union[JDict, JList, JPrim]
+
+
+
+class JsonProcessor:
+    def handle_dict(self, js: JDict, jp: JPath) -> None:
+        pass
+
+    def handle_str(self, js: str, jp: JPath) -> None:
+        pass
+
+    def do_dict(self, js: JDict, jp: JPath) -> None:
+        self.handle_dict(js, jp)
+        for k, v in js.items():
+            self._do(v, jp)
+
+    def do_list(self, js: JList, jp: JPath) -> None:
+        for x in js:
+            self._do(x, jp)
+
+    # def do_str(self, js: str, path: JPath) -> None:
+    #     self.handle_str(js)
+
+    def _do(self, js: Json, path: JPath):
+        if isinstance(js, dict): # TODO have functions for dict like, list like etc
+            self.do_dict(js, path)
+        elif isinstance(js, list):
+            self.do_list(js, path)
+        elif isinstance(js, str):
+            self.handle_str(js, path)
+        elif isinstance(js, (int, bool, float, type(None))):
+            pass # TODO process that as well
+        else:
+            raise RuntimeError(f'unexpected item {js} of type {type(js)}')
+
+    def run(self, js: Json):
+        self._do(js, [])
+
+# TODO path is a sequence of jsons and keys?
+
+def test_json_processor():
+    handled = []
+    class Proc(JsonProcessor):
+        def handle_str(self, value, path):
+            handled.append((value, path))
+
+    j = {
+        'a': [1, 2, 3],
+        'x': {
+            'y': {
+                'description': 'whatever',
+                'link': 'http://reddit.com',
+            }
+        }
+    }
+
+    p = Proc()
+    p.run(j)
+    assert len(handled) > 0
+
+
+if __name__ == '__main__':
+    test_json_processor()
+
