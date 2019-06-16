@@ -55,6 +55,8 @@ JPath = Tuple[JPathPart, ...]
 
 
 class JsonProcessor:
+    SKIP = object()
+
     def handle_dict(self, js: JDict, jp: JPath) -> None:
         pass
 
@@ -88,16 +90,33 @@ class JsonProcessor:
         path = cast(JPath, ())
         self._do(js, path)
 
+    @classmethod
+    def kpath(cls, path: JPath) -> Tuple[JPathPart, ...]:
+        return (x[1] for x in path) # type: ignore
+
 # TODO path is a sequence of jsons and keys?
 
 def test_json_processor():
     handled = []
     class Proc(JsonProcessor):
         def handle_str(self, value: str, path):
+            if 'skipme' in self.kpath(path):
+                return JsonProcessor.SKIP
             if 'http' in value:
                 handled.append((value, path))
 
     j = {
+        'skipme': {
+            'x': {
+                'y': [
+                    123,
+                    {
+                        'description': 'whatever',
+                        'link': 'http://ya.ru',
+                    },
+                ]
+            }
+        },
         'a': [1, 2, 3],
         'x': {
             'y': [
@@ -107,7 +126,7 @@ def test_json_processor():
                     'link': 'http://reddit.com',
                 },
             ]
-        }
+        },
     }
 
     p = Proc()
