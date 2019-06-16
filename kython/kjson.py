@@ -40,8 +40,8 @@ class ToFromJson:
                 res[k] = v
         return self.cls(**res)
 
-from typing import Sequence, Any, Dict, List, Union
-JPath = Sequence[str]
+from typing import Sequence, Any, Dict, List, Union, Tuple, cast
+JPath = Tuple[Union[str, int]]
 
 JDict = Dict[str, Any] # TODO not sure if we can do recursive..
 JList = List[Any]
@@ -61,14 +61,13 @@ class JsonProcessor:
     def do_dict(self, js: JDict, jp: JPath) -> None:
         self.handle_dict(js, jp)
         for k, v in js.items():
-            self._do(v, jp)
+            path = cast(JPath, jp + (k, ))
+            self._do(v, path)
 
     def do_list(self, js: JList, jp: JPath) -> None:
-        for x in js:
-            self._do(x, jp)
-
-    # def do_str(self, js: str, path: JPath) -> None:
-    #     self.handle_str(js)
+        for i, x in enumerate(js):
+            path = cast(JPath, jp + (i, ))
+            self._do(x, path)
 
     def _do(self, js: Json, path: JPath):
         if isinstance(js, dict): # TODO have functions for dict like, list like etc
@@ -83,29 +82,39 @@ class JsonProcessor:
             raise RuntimeError(f'unexpected item {js} of type {type(js)}')
 
     def run(self, js: Json):
-        self._do(js, [])
+        path = cast(JPath, ())
+        self._do(js, path)
 
 # TODO path is a sequence of jsons and keys?
 
 def test_json_processor():
     handled = []
     class Proc(JsonProcessor):
-        def handle_str(self, value, path):
-            handled.append((value, path))
+        def handle_str(self, value: str, path):
+            if 'http' in value:
+                handled.append((value, path))
 
     j = {
         'a': [1, 2, 3],
         'x': {
-            'y': {
-                'description': 'whatever',
-                'link': 'http://reddit.com',
-            }
+            'y': [
+                123,
+                {
+                    'description': 'whatever',
+                    'link': 'http://reddit.com',
+                },
+            ]
         }
     }
 
     p = Proc()
     p.run(j)
     assert len(handled) > 0
+
+    [h1] = handled
+    (link, path) = h1
+    assert link == 'http://reddit.com'
+    assert path == ('x', 'y', 1, 'link')
 
 
 if __name__ == '__main__':
