@@ -149,8 +149,24 @@ def get_spec(dom: str) -> Spec:
 class CanonifyException(Exception):
     pass
 
+# TODO not so sure if it's better to quote or not?
+quote_via   = urllib.parse.quote_plus
+unquote_via = urllib.parse.unquote_plus
+
+
+def _quote_path(path: str) -> str:
+    parts = path.split('/')
+    nparts = []
+    for p in parts:
+        if '%' in p: # some urls are partially encoded... perhaps canonify needs hints indicating if url needs normalising or not
+            p = unquote_via(p)
+        # TODO safe argumnet?
+        nparts.append(quote_via(p))
+    return '/'.join(nparts)
+
 
 def _canonify(url: str) -> str:
+
     parts = urlsplit(url)
     if parts.scheme == '':
         # if scheme is missing it doesn't parse netloc properly...
@@ -169,12 +185,14 @@ def _canonify(url: str) -> str:
     qq = [(k, v) for k, v in qq if spec.keep_query(k)]
     # TODO still not sure what we should do..
     # quote_plus replaces %20 with +, not sure if we want it...
-    query = urlencode(qq, quote_via=urllib.parse.quote_plus)
+    query = urlencode(qq, quote_via=quote_via)
+
+    path = _quote_path(parts.path)
 
     uns = urlunsplit((
         '',
         domain,
-        parts.path,
+        path,
         query,
         frag,
     ))
@@ -268,6 +286,13 @@ import pytest # type: ignore
 
     ( "https://answers.yahoo.com/question/index?qid=20071101131442AAk9bGp"
     , "answers.yahoo.com/question/index?qid=20071101131442AAk9bGp"
+    ),
+
+    ( "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%e2%80%93-2010"
+    , "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%E2%80%93-2010"
+    ),
+    ( "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-–-2010"
+    , "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%E2%80%93-2010"
     ),
 
     # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
