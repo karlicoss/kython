@@ -167,10 +167,14 @@ def _quote_path(path: str) -> str:
 
 
 def _prenormalise(url: str) -> str:
-    # sometimes urls contain & right after / for some reason, and urlsplit chokes over it
-    # e.g. in google takeout
-    # not sure how safe it in general...
-    return url.replace('/&', '?')
+    if '?' not in url:
+        # sometimes urls have not ? but do have query parameters starting with & for some reason; urlsplit chokes over it
+        # e.g. in google takeout
+        # not sure how safe it in general...
+        first_q = url.find('&')
+        if first_q != -1:
+            return url[:first_q] + '?' + url[first_q + 1:]
+    return url
 
 # TODO ok, I suppose even though we can't distinguish + and space, likelihood of them overlapping in normalised url is so low, that it doesn't matter much
 # TODO actually, might be easier for most special charaters
@@ -302,6 +306,10 @@ import pytest # type: ignore
     ),
     ( "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-–-2010"
     , "flowingdata.com/2010/12/14/10-best-data-visualization-projects-of-the-year-%E2%80%93-2010"
+    ),
+
+    ( "https://spoonuniversity.com/lifestyle/marmite-ways-to-eat-it&usg=AFQjCNH4s1SOEjlpENlfPV5nuvADZpSdow"
+    , "spoonuniversity.com/lifestyle/marmite-ways-to-eat-it"
     ),
 
     # ( "gwern.net/DNB+FAQ"
