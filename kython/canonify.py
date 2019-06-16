@@ -146,8 +146,11 @@ def get_spec(dom: str) -> Spec:
             return sp
     return _def_spec
 
+class CanonifyException(Exception):
+    pass
 
-def canonify(url: str) -> str:
+
+def _canonify(url: str) -> str:
     parts = urlsplit(url)
     if parts.scheme == '':
         # if scheme is missing it doesn't parse netloc properly...
@@ -180,6 +183,12 @@ def canonify(url: str) -> str:
     uns = try_cutr('/', uns) # not sure if there is a better way
     return uns
 
+
+def canonify(url: str) -> str:
+    try:
+        return _canonify(url)
+    except Exception as e:
+        raise CanonifyException(url) from e
 
 
 # TODO should actually understand 'sequences'?
@@ -311,7 +320,9 @@ def test(url, expected):
 
 
 
-
+def test_error():
+    # TODO not sure how to trigger it...
+    pass
 
 
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
