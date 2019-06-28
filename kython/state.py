@@ -4,6 +4,7 @@ from typing import List, Union, Dict
 import logging
 import os
 import sys
+import warnings
 
 from kython.tui import yesno_or_fail
 
@@ -21,12 +22,14 @@ class JsonState:
     def __init__(
             self,
             path: PathIsh,
-            dryrun=False,
+            dry_run=False,
             default=None,
             logger=logging.getLogger('kython-json-state'),
     ) -> None:
         self.path = Path(path)
-        self.dryrun = dryrun
+
+        # TODO dryrun is hard to implement properly because of reading from disk every time...
+        self.dryrun = dry_run
         if default is None:
             default = {}
 
@@ -47,6 +50,11 @@ class JsonState:
         current = self.get()
         assert key not in current # just in case
         current[key] = value
+
+        if self.dryrun:
+            self.logger.debug('dry run! ignoring %s: %s', key, value)
+            return
+
         with atomic_write(str(self.path), overwrite=True) as fo:
             json.dump(current, fo, indent=1, sort_keys=True)
 
@@ -54,7 +62,7 @@ class JsonState:
     def get(self):
         if self.state is None:
             if not self.path.exists():
-                self.state = self.default # TODO deepcopy??
+                self.state = self.default # TODO deepcopy?? or factory
             else:
                 with self.path.open('r') as fo:
                     self.state = json.load(fo)
@@ -65,6 +73,7 @@ class JsonState:
         return self._update(st)
 
     def _update(self, st):
+        # TODO FIXME setitem should use update?
         self.state = st
         if self.dryrun:
             return
@@ -81,6 +90,7 @@ class JsonState:
             self.logger.debug(f'already handled: %s: %s', key, value)
             return
         self.logger.info(f'adding %s: %s', key, value)
+        # TODO not sure about print...
         print(f'adding new item {key}: {value}')
         action()
         # TODO FIXME check for lock files here?
