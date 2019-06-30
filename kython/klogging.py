@@ -1,9 +1,29 @@
+import functools
+import logging
+
+
+# TODO name a bit misleading?
+# TODO allow passing setup function to it?
+class LazyLogger(logging.Logger):
+    """
+    Doing logger = logging.getLogger() on top level is not safe because it happens before logging configuring (if you do it in main).
+    Normally you get around it with defining get_logger() -> Logger, but that's annoying to do every time you want to use logger.
+    This allows you to do logger = LazyLogger('my-script'), which would only be initialised on first use.
+    """
+    @functools.lru_cache(1)
+    def _instance(self) -> logging.Logger:
+        return logging.getLogger(self.name)
+
+    def __getattr__(self, attr):
+        inst = self._instance()
+        return getattr(inst, attr)
+
+
 def setup_logzero(logger, logfile: str = None, level = None, cronlevel = None):
     if cronlevel is None:
         cronlevel = level
 
     import sys
-    import logging
 
     stream_fmt = None
     file_fmt = None
@@ -35,6 +55,7 @@ def setup_logzero(logger, logfile: str = None, level = None, cronlevel = None):
         logger.addHandler(fhandler)
 
 
+# TODO remove it?
 def setup_coloredlogs(logger, level=None):
     # TODO should be same as logzero
     COLOREDLOGGER_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
