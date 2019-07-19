@@ -494,7 +494,6 @@ def import_file(p: PathIsh, name=None):
 from functools import wraps
 import time
 import logging
-from collections.abc import Callable
 
 def timed(func):
     lfunc = logging.warning
@@ -514,3 +513,29 @@ def checkpoint():
     xx = traceback.extract_stack()[-2]
     tt = time.time()
     logging.warning('%s %s', xx, tt)
+
+
+from .ktyping import NoneType
+
+_C = TypeVar('_C')
+_R = TypeVar('_R')
+
+class classproperty:
+    # https://stackoverflow.com/a/5192374/706389
+    def __init__(self, f: Callable[[_C], _R]) -> None:
+        self.f = f
+
+    def __get__(self, obj: NoneType, cls: _C) -> _R:
+        assert obj is None
+        return self.f(cls)
+
+
+def test_classproperty() -> None:
+    class A:
+        @classproperty
+        # pylint: disable=no-self-argument
+        def something(cls) -> str:
+            return 'HELLO'
+
+    assert A.something == 'HELLO'
+
