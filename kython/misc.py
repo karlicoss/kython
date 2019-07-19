@@ -455,8 +455,30 @@ def oset(*values):
 
 
 # TODO fixme how to do this properly?
+# TODO remove?
 cache = functools.lru_cache(maxsize=1000)
-cproperty = lambda f: property(cache(f))
+
+import functools
+from typing import TypeVar, Type, Callable
+Cl = TypeVar('Cl')
+R = TypeVar('R')
+
+def cproperty(f: Callable[[Cl], R]) -> R:
+    return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
+
+def test_cprop() -> None:
+    xx = []
+    class A:
+        @cproperty
+        def pr(self) -> str:
+            xx.append(1)
+            return 'value'
+
+    a = A()
+    assert a.pr == 'value'
+    assert a.pr == 'value'
+    assert len(xx) == 1
+
 
 
 # just to trick mypy
@@ -526,7 +548,8 @@ class classproperty:
         self.f = f
 
     def __get__(self, obj: NoneType, cls: _C) -> _R:
-        assert obj is None
+        # TODO wtf is this? not always none..
+        # assert obj is None
         return self.f(cls)
 
 
