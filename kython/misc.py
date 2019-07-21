@@ -31,7 +31,7 @@ def the(l: Iterable[A]) -> A:
     try:
         first = next(it)
     except StopIteration as ee:
-        raise RuntimeError(ee)
+        raise RuntimeError('Empty iterator?')
     assert all(e == first for e in it)
     return first
 
@@ -248,7 +248,7 @@ def filter_by_value(p, d: Dict) -> Dict:
 
 # TODO order might be not great.. swap params..
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
-    res = {} # type: Dict[K, List[T]]
+    res: Dict[K, List[T]] = {}
     for i in l:
         kk = key(i)
         lst = res.get(kk, [])
