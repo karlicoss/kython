@@ -517,8 +517,10 @@ from functools import wraps
 import time
 import logging
 
-def timed(func):
-    lfunc = logging.warning
+def timed(func, logger=None):
+    if logger is None:
+        logger = logging
+    lfunc = logger.debug
     @wraps(func)
     def wrapper(*args, **kwargs):
         fname = func.__name__
@@ -526,7 +528,7 @@ def timed(func):
         lfunc('%s: running', fname)
         result = func(*args, **kwargs)
         end = time.time()
-        lfunc("%s ran in %s", fname, round(end - start, 2))
+        lfunc("%s ran in %s sec", fname, round(end - start, 2))
         return result
     return wrapper
 
