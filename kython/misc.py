@@ -1,20 +1,20 @@
-from collections import OrderedDict
-
-from datetime import datetime, timedelta, date
-
-import re
-
-from pathlib import Path
 import functools
-from itertools import groupby, islice
 import json
-from json import load as json_load, loads as json_loads
-from enum import Enum
 import os
-from os.path import isfile
-from pprint import pprint
+import re
 import sys
-from typing import List, Set, Dict, Iterable, TypeVar, Callable, Tuple, Optional, NamedTuple, NewType, Any, Union, Iterator, Collection, Sequence, cast
+from collections import OrderedDict
+from contextlib import contextmanager
+from datetime import date, datetime, timedelta
+from enum import Enum
+from itertools import groupby, islice
+from json import load as json_load, loads as json_loads
+from os.path import isfile
+from pathlib import Path
+from pprint import pprint
+from typing import (Any, Callable, Collection, Dict, Iterable, Iterator, List,
+    NamedTuple, NewType, Optional, Sequence, Set, Tuple, TypeVar, Union, cast)
+
 
 NAN = float('nan')
 
@@ -536,11 +536,43 @@ from functools import wraps
 import time
 import logging
 
-@doublewrap
+
+@contextmanager
+def ccc(name: str, logger=None):
+    if logger is None:
+        logger = logging
+    lfunc = logger.debug
+    start = time.time()
+    lfunc('%s: running', name)
+    yield
+    end = time.time()
+    lfunc("%s ran in %s sec", name, round(end - start, 2))
+
+
+def ctxmanager_magic(f):
+    @wraps(f)
+    def dec(*args, **kwargs):
+        # TODO try to figure out how to support unnamed ctx?
+        # TODO use stacktrace info from inspect??
+        if len(args) == 1:
+            arg = args[0]
+            if isinstance(arg, str):
+                # used as ctx manager
+                return ccc(name=arg, **kwargs)
+            elif callable(arg):
+                # used as decorator
+                return f(arg)
+        else:
+            return lambda realf: f(realf, *args, **kwargs)
+    return dec
+
+
+@ctxmanager_magic
 def timed(func, logger=None):
     if logger is None:
         logger = logging
     lfunc = logger.debug
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         fname = func.__name__
@@ -551,6 +583,27 @@ def timed(func, logger=None):
         lfunc("%s ran in %s sec", fname, round(end - start, 2))
         return result
     return wrapper
+
+
+def test_timed():
+    def get_logger():
+        return logging.getLogger('timing-test')
+
+    @timed
+    def test_noargs():
+        time.sleep(0.1)
+
+
+    @timed(logger=get_logger())
+    def test_args():
+        time.sleep(0.2)
+
+    test_args()
+    test_noargs()
+
+    with timed('testing ', logger=get_logger()):
+        time.sleep(0.3)
+
 
 import traceback
 def checkpoint():
