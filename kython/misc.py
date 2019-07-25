@@ -594,6 +594,7 @@ def test_timed():
         time.sleep(0.1)
 
 
+    # pylint: disable=no-value-for-parameter
     @timed(logger=get_logger())
     def test_args():
         time.sleep(0.2)
@@ -601,6 +602,7 @@ def test_timed():
     test_args()
     test_noargs()
 
+    # pylint: disable=not-context-manager
     with timed('testing ', logger=get_logger()):
         time.sleep(0.3)
 
