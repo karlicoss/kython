@@ -318,17 +318,13 @@ def numbers(from_=0) -> Iterator[int]:
 def first(iterable):
     return next(iter(iterable))
 
-def ichunks(l: Iterator[T], n: int):
-    # TODO FIXME on mypy level
-    if hasattr(l, '__iter__'):
-        it = iter(l)
-    else:
-        it = l
+def ichunks(l: Iterable[T], n: int) -> Iterator[List[T]]:
+    it: Iterator[T] = iter(l)
     while True:
-        ch = list(islice(it, 0, n))
-        if len(ch) == 0:
+        chunk: List[T] = list(islice(it, 0, n))
+        if len(chunk) == 0:
             break
-        yield ch
+        yield chunk
 
 
 def chunks(l: Sequence[T], n: int): # no return type, fucking mypy can't handle str
