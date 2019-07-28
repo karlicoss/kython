@@ -8,8 +8,9 @@ import dominate
 # TODO perhaps post on github?
 # TODO FIXME implement a test or something...
 # TODO generate random?
+# TODO remove context after finishing?
 @contextmanager
-def adhoc_html(uid: str):
+def hack_html_context(uid: str):
     domtag = dominate.dom_tag # type: ignore
     prev = domtag._get_thread_context
     def hacked_thread_contex(uid=uid):
@@ -20,3 +21,13 @@ def adhoc_html(uid: str):
         yield
     finally:
         domtag._get_thread_context = prev
+
+
+@contextmanager
+def adhoc_html(uid: str, cb):
+    with hack_html_context(uid=uid):
+        with dominate.tags.html() as html:
+            # TODO not sure if original html would ever be useful?
+            yield # TODO needs a test..
+        # TODO meh..
+        cb(html.children)
