@@ -26,7 +26,7 @@ def hack_html_context(uid: str):
 @contextmanager
 def adhoc_html(uid: str, cb):
     with hack_html_context(uid=uid):
-        with dominate.tags.html() as html:
+        with dominate.tags.html() as html: # type: ignore
             # TODO not sure if original html would ever be useful?
             yield # TODO needs a test..
         # TODO meh..

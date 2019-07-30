@@ -13,7 +13,7 @@ class DummyExecutor(Executor):
             if self._shutdown:
                 raise RuntimeError('cannot schedule new futures after shutdown')
 
-            f = Future()
+            f = Future() # type: ignore # not sure why it wants type here...
             try:
                 result = fn(*args, **kwargs)
             except BaseException as e:
