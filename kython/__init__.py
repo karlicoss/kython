@@ -40,3 +40,10 @@ def listify(fn=None, wrapper=list):
     if fn is None:
         return listify_return
     return listify_return(fn)
+
+
+def dictify(fn=None, key=None, value=None):
+    def md(it):
+        return make_dict(it, key=key, value=value)
+    return listify(fn=fn, wrapper=md)
+
