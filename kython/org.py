@@ -30,6 +30,7 @@ def extract_org_datestr(s: str) -> Optional[str]:
         return match.group(0)
 
 def parse_org_date(s: str) -> Dateish:
+    s = s.strip('[]')
     for fmt, cl in [
             ("%Y-%m-%d %a %H:%M", datetime),
             ("%Y-%m-%d %H:%M", datetime),
