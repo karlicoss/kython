@@ -1,4 +1,4 @@
-from typing import Union, TypeVar, Iterator, Callable, Iterable, List
+from typing import Union, TypeVar, Iterator, Callable, Iterable, List, Tuple, Type
 
 
 T = TypeVar('T')
@@ -36,6 +36,18 @@ def fmap(f: Callable[[T], U]) -> Callable[[Res[T]], Res[U]]:
             return f(v)
     return cc
 
+# TODO ugh. perhaps function should be error aware somehow? via decorator or something?
+
+def split_errors(l: Iterable[ResT[T, E]], ET=Exception) -> Tuple[List[T], List[E]]:
+    rl: List[T] = []
+    el: List[E] = []
+    for x in l:
+        if isinstance(x, ET):
+            el.append(x)
+        else:
+            rl.append(x) # type: ignore
+    return rl, el
+
 
 def ytry(cb) -> Iterator[Exception]:
     try:
@@ -46,14 +58,18 @@ def ytry(cb) -> Iterator[Exception]:
 
 # TODO experimental, not sure if I like it
 def echain(ex: E, cause: Exception) -> E:
-    try:
-        # TODO is there a awy to get around raise from?
-        raise ex from cause
-    except Exception as e:
-        if isinstance(e, type(ex)):
-            return e
-        else:
-            raise e
+    ex.__cause__ = cause
+    # TODO assert cause is none?
+    # TODO copy??
+    return ex
+    # try:
+    #     # TODO is there a awy to get around raise from?
+    #     raise ex from cause
+    # except Exception as e:
+    #     if isinstance(e, type(ex)):
+    #         return e
+    #     else:
+    #         raise e
 
 
 class Infinity:
