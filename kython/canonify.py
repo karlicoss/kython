@@ -189,7 +189,7 @@ def transform_split(split: SplitResult):
     ID = r'(?P<id>[^/]+)'
     rules = {
         f'youtu.be/{ID}': ('youtube.com', '/watch', 'v={id}'),
-        # TODO domain: replaced
+        # TODO wonder if there is a better candidate for canonical video link?
         # {DOMAIN} pattern? implicit?
     }
 
@@ -288,8 +288,9 @@ import pytest # type: ignore
     # , "youtube.com/watch?v=nyc6RJEEe0U"
     # ),
 
-    ( 'https://youtu.be/iCvmsMzlF7o'
-    , 'youtube.com/watch?v=iCvmsMzlF7o'
+    # TODO hmm. ordering?
+    ( 'https://youtu.be/iCvmsMzlF7o?list=WL'
+    , 'youtube.com/watch?list=WL&v=iCvmsMzlF7o'
     ),
 
     # TODO can even be like that or contain timestamp (&t=)
@@ -478,6 +479,7 @@ def main():
     import argparse
     p = argparse.ArgumentParser()
     p.add_argument('input', nargs='?')
+    p.add_argument('--human', action='store_true')
     args = p.parse_args()
 
     if args.input is None:
@@ -487,7 +489,12 @@ def main():
         it = [args.input]
 
     for line in it:
+        line = line.strip()
+        if args.human:
+            print('---')
+            print(line)
         print(canonify(line))
+
 
 if __name__ == '__main__':
     main()
