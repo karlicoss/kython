@@ -512,8 +512,33 @@ def main():
         if args.human:
             print('---')
             print(line)
-        print(canonify(line))
+        can = canonify(line)
         # TODO use textual diff?
+        import difflib
+        sm = difflib.SequenceMatcher(None, line, can)
+        from termcolor import colored as C
+        from sys import stdout
+
+        org_ = ""
+        can_ = ""
+
+        for what, ff, tt, ff2, tt2 in sm.get_opcodes():
+            if what == 'delete':
+                color = 'red'
+            elif what == 'equal':
+                color = 'green'
+            else:
+                color = 'yellow'
+            # TODO exclude certain items from comparison?
+
+
+            org_ += C(line[ff: tt] , color=color)
+            can_ += C(can[ff2: tt2], color=color)
+            cl = max(len(org_), len(can_))
+            org_ += ' ' * (cl - len(org_))
+            can_ += ' ' * (cl - len(can_))
+
+        stdout.write(f'{org_}\n{can_}\n---\n')
 
 
 if __name__ == '__main__':
