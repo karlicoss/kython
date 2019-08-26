@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import urllib.parse
-from urllib.parse import urlsplit, parse_qsl, urlunsplit, parse_qs, urlencode
+from urllib.parse import urlsplit, parse_qsl, urlunsplit, parse_qs, urlencode, SplitResult
 
 # this has some benchmark, but quite a few librarires seem unmaintained, sadly
 # I guess i'll stick to default for now, until it's a critical bottleneck
@@ -176,6 +176,22 @@ def _prenormalise(url: str) -> str:
             return url[:first_q] + '?' + url[first_q + 1:]
     return url
 
+
+def transform_split(split: SplitResult) -> SplitResult:
+    netloc   = split.netloc
+    path     = split.path
+    query    = split.query
+    fragment = split.fragment
+    # TODO just discard scheme?
+    return SplitResult(
+        scheme='',
+        netloc=netloc,
+        path=path,
+        query=query,
+        fragment=fragment,
+    )
+
+
 # TODO ok, I suppose even though we can't distinguish + and space, likelihood of them overlapping in normalised url is so low, that it doesn't matter much
 # TODO actually, might be easier for most special charaters
 def canonify(url: str) -> str:
@@ -183,16 +199,20 @@ def canonify(url: str) -> str:
     url = _prenormalise(url)
 
     try:
+        # TODO didn't really get difference from urlparse
         parts = urlsplit(url)
     except Exception as e:
         raise CanonifyException(url) from e
 
+    # TODO move to prenormalise?
     if parts.scheme == '':
         # if scheme is missing it doesn't parse netloc properly...
         try:
             parts = urlsplit('http://' + url)
         except Exception as e:
             raise CanonifyException(url) from e
+
+    parts = transform_split(parts)
 
     domain = canonify_domain(parts.netloc)
     spec = get_spec(domain)
@@ -254,6 +274,8 @@ import pytest # type: ignore
     # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # , "youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # ),
+    # TODO perhaps it should result in video link + sibling link?
+    # when exploring other people's playlists this could be quite useful?
 
     # ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
     # , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
