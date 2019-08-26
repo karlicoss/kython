@@ -232,26 +232,51 @@ def canonify(url: str) -> str:
 
 import pytest # type: ignore
 
+
+
+# https://youtu.be/iCvmsMzlF7o
+
+@pytest.mark.parametrize('url,expected', [
+    ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
+    , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
+    ),
+    ( "youtube.com/watch?v=wHrCkyoe72U&feature=share&time_continue=6"
+    , "youtube.com/watch?v=wHrCkyoe72U"
+    ),
+    # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
+    # , "youtube.com/watch?v=nyc6RJEEe0U", # TODO not sure how realistic...
+    # )
+
+    ( "m.youtube.com/watch?v=Zn6gV2sdl38"
+    , "youtube.com/watch?v=Zn6gV2sdl38"
+    ),
+
+    # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
+    # , "youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
+    # ),
+
+    # ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
+    # , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
+    # ),
+    # TODO
+    # youtube.com/user/magauchsein/playlists?sort=dd&view=50&shelf_id=14
+    # youtube.com/user/TheChemlife/videos?view=0&sort=p&flow=grid
+])
+def test_youtube(url, expected):
+    assert canonify(url) == expected
+
+
 @pytest.mark.parametrize("url,expected", [
     # TODO FIXME fragment handling
     # ( "https://www.scottaaronson.com/blog/?p=3167#comment-1731882"
     # , "scottaaronson.com/blog/?p=3167#comment-1731882"
     # ),
 
-    ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
-    , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
-    ),
 
     # TODO FIXME fragment handling
     # ( "https://en.wikipedia.org/wiki/tendon#cite_note-14"
     # , "en.wikipedia.org/wiki/tendon#cite_note-14"
     # ),
-    # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
-    # , "youtube.com/watch?v=nyc6RJEEe0U", # TODO not sure how realistic...
-    # )
-    ( "youtube.com/watch?v=wHrCkyoe72U&feature=share&time_continue=6"
-    , "youtube.com/watch?v=wHrCkyoe72U"
-    ),
 
     # TODO FIXME fragment handling
     # ( "https://physicstravelguide.com/experiments/aharonov-bohm#tab__concrete"
@@ -290,10 +315,6 @@ import pytest # type: ignore
     , "withouthspec.co.uk/rooms/16867952"
     ),
 
-    ( "m.youtube.com/watch?v=Zn6gV2sdl38"
-    , "youtube.com/watch?v=Zn6gV2sdl38"
-    ),
-
     ( "amp.theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality"
     , "theguardian.com/technology/2017/oct/09/mark-zuckerberg-facebook-puerto-rico-virtual-reality",
     ),
@@ -314,9 +335,6 @@ import pytest # type: ignore
 
     # ( "gwern.net/DNB+FAQ"
     # , "TODO" # ???
-    # ),
-    # ( "https//youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
-    # , "youtube.com/playlist?list=PLeOfc0M-50LmJtZwyOfw6aVopmIbU1t7t"
     # ),
 
     # TODO shit. is that normal??? perhaps need to manually move fragment?
@@ -342,9 +360,6 @@ def test(url, expected):
     # TODO m.facebook.com
     # TODO         [R('^(youtube|urbandictionary|tesco|scottaaronson|answers.yahoo.com|code.google.com)') , None],
 
-    # TODO
-    # youtube.com/user/magauchsein/playlists?sort=dd&view=50&shelf_id=14
-    # youtube.com/user/TheChemlife/videos?view=0&sort=p&flow=grid
 
 
     # TODO
@@ -366,9 +381,6 @@ def test(url, expected):
     # TODO FIXME fragment handling
     # ( "https://www.scottaaronson.com/blog/?p=3167#comment-1731882"
     # , "scottaaronson.com/blog/?p=3167#comment-1731882"
-    # ),
-    # ( "https://www.youtube.com/watch?v=1NHbPN9pNPM&index=63&list=WL&t=491s"
-    # , "youtube.com/watch?v=1NHbPN9pNPM&list=WL" # TODO not so sure about &t, it's sort of useful
     # ),
 
 @pytest.mark.parametrize("urls", [
