@@ -186,8 +186,11 @@ def transform_split(split: SplitResult):
     fragment = split.fragment
 
 
-    ID = r'(?P<id>[^/]+)'
+    ID   = r'(?P<id>[^/]+)'
+    REST = r'(?P<rest>.*)'
     rules = {
+        # TODO m. handling might be quite common
+        # f'm.youtube.com/{REST}': ('youtube.com', '{rest}'),
         (
             f'youtu.be/{ID}',
             f'youtube.com/embed/{ID}',
@@ -212,10 +215,12 @@ def transform_split(split: SplitResult):
             continue
 
         rest = '/' + rest  # path seems to always start with /
-        m = re.match(rest, path)
+        m = re.fullmatch(rest, path)
         if m is None:
             continue
         gd = m.groupdict()
+        if len(to) == 2:
+            to = to + ('', )
 
         (netloc, path, qq) = [t.format(**gd) for t in to]
         qparts.extend(parse_qsl(qq)) # TODO hacky..
@@ -506,3 +511,16 @@ if __name__ == '__main__':
     main()
 
 # TODO hmm, it's actually sort of fingerprinter... so maybe that's what I should call it
+
+
+# link can have multiple parents: e.g. youtube video would have playlist as parent and also user
+# reddit comment would have post as parent, post will have subreddit as parent
+
+# wikipedia footnote will have
+# certain urls would need to treat # as parent relationship (e.g. slatestarcodex?)
+
+
+# siblings are items that share a parent (could also return which one is shared)
+
+
+# youtube end domain normalising: very few occurences, so I won't care about them for now
