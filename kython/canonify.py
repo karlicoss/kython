@@ -341,6 +341,14 @@ def test_youtube(url, expected):
     assert canonify(url) == expected
 
 
+@pytest.mark.parametrize('url, expected', [
+    ( 'https://www.reddit.com/r/firefox/comments/bbugc5/firefox_bans_free_speech_commenting_plugin/?ref=readnext'
+    , 'reddit.com/r/firefox/comments/bbugc5/firefox_bans_free_speech_commenting_plugin',
+    ),
+])
+def test_reddit(url, expected):
+    assert canonify(url) == expected
+
 @pytest.mark.parametrize("url,expected", [
     # TODO FIXME fragment handling
     # ( "https://www.scottaaronson.com/blog/?p=3167#comment-1731882"
@@ -505,6 +513,7 @@ def main():
             print('---')
             print(line)
         print(canonify(line))
+        # TODO use textual diff?
 
 
 if __name__ == '__main__':
@@ -512,15 +521,17 @@ if __name__ == '__main__':
 
 # TODO hmm, it's actually sort of fingerprinter... so maybe that's what I should call it
 
+# tweet          -P-> user (not always possible to determine)
+# reddit comment -P-> reddit post
+# reddit post    -P-> subreddit
+# YT video       -P-> user, playlist
 
-# link can have multiple parents: e.g. youtube video would have playlist as parent and also user
-# reddit comment would have post as parent, post will have subreddit as parent
-
-# wikipedia footnote will have
+# wikipedia footnote will have ???
 # certain urls would need to treat # as parent relationship (e.g. slatestarcodex?)
-
 
 # siblings are items that share a parent (could also return which one is shared)
 
-
 # youtube end domain normalising: very few occurences, so I won't care about them for now
+
+
+# TODO for debugging, have special mode that only uses query param trimming one by one
