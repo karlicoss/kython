@@ -177,19 +177,41 @@ def _prenormalise(url: str) -> str:
     return url
 
 
-def transform_split(split: SplitResult) -> SplitResult:
-    netloc   = split.netloc
+def transform_split(split: SplitResult):
+    netloc = canonify_domain(split.netloc)
+
     path     = split.path
-    query    = split.query
+    qparts   = parse_qsl(split.query)
+
     fragment = split.fragment
-    # TODO just discard scheme?
-    return SplitResult(
-        scheme='',
-        netloc=netloc,
-        path=path,
-        query=query,
-        fragment=fragment,
-    )
+
+
+    ID = r'(?P<id>[^/]+)'
+    rules = {
+        f'youtu.be/{ID}': ('youtube.com', '/watch', 'v={id}'),
+        # TODO domain: replaced
+        # {DOMAIN} pattern? implicit?
+    }
+
+    import re
+
+    for fr, to in rules.items():
+        # TODO precache by domain?
+        dom, rest = fr.split('/', maxsplit=1)
+        if dom != netloc:
+            continue
+
+        rest = '/' + rest  # path seems to always start with /
+        m = re.match(rest, path)
+        assert m is not None # TODO more defensive?
+        gd = m.groupdict()
+
+        (netloc, path, qq) = [t.format(**gd) for t in to]
+        qparts.extend(parse_qsl(qq)) # TODO hacky..
+        break
+
+
+    return netloc, path, qparts, fragment
 
 
 # TODO ok, I suppose even though we can't distinguish + and space, likelihood of them overlapping in normalised url is so low, that it doesn't matter much
@@ -212,24 +234,22 @@ def canonify(url: str) -> str:
         except Exception as e:
             raise CanonifyException(url) from e
 
-    parts = transform_split(parts)
 
-    domain = canonify_domain(parts.netloc)
+    domain, path, qq, _frag = transform_split(parts)
+
     spec = get_spec(domain)
 
-    query = parts.query
 
     # TODO FIXME turn this logic back on?
     # frag = parts.fragment if spec.fkeep else ''
     frag = ''
 
-    qq = parse_qsl(query)
     qq = [(k, v) for k, v in qq if spec.keep_query(k)]
     # TODO still not sure what we should do..
     # quote_plus replaces %20 with +, not sure if we want it...
     query = urlencode(qq, quote_via=quote_via)
 
-    path = _quote_path(parts.path)
+    path = _quote_path(path)
 
     uns = urlunsplit((
         '',
@@ -263,9 +283,30 @@ import pytest # type: ignore
     ( "youtube.com/watch?v=wHrCkyoe72U&feature=share&time_continue=6"
     , "youtube.com/watch?v=wHrCkyoe72U"
     ),
+
     # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
-    # , "youtube.com/watch?v=nyc6RJEEe0U", # TODO not sure how realistic...
-    # )
+    # , "youtube.com/watch?v=nyc6RJEEe0U"
+    # ),
+
+    ( 'https://youtu.be/iCvmsMzlF7o'
+    , 'youtube.com/watch?v=iCvmsMzlF7o'
+    ),
+
+    # TODO can even be like that or contain timestamp (&t=)
+    # https://youtu.be/J98jwtm5U4E?list=WL
+    # TODO warn if param already present? shouldn't happen..
+
+    # TODO could be interesting to do automatic rule extraction by querying one represnetative and then extracting canonical
+
+    # youtu.be / IDENT -> youtube.com/watch?v=IDENT
+
+    # youtu.be/{}
+
+    # TODO national domains don't matter for youtube
+
+    # [*, 'youtube', ANY_DOMAIN] / 'embed' -> 'youtube.com/watch'
+    # TODO use regex backrefs?
+    # 
 
     ( "m.youtube.com/watch?v=Zn6gV2sdl38"
     , "youtube.com/watch?v=Zn6gV2sdl38"
