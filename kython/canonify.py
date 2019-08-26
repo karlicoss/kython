@@ -188,14 +188,24 @@ def transform_split(split: SplitResult):
 
     ID = r'(?P<id>[^/]+)'
     rules = {
-        f'youtu.be/{ID}': ('youtube.com', '/watch', 'v={id}'),
+        (
+            f'youtu.be/{ID}',
+            f'youtube.com/embed/{ID}',
+        ) : ('youtube.com', '/watch', 'v={id}'),
         # TODO wonder if there is a better candidate for canonical video link?
         # {DOMAIN} pattern? implicit?
     }
 
     import re
 
-    for fr, to in rules.items():
+    def iter_rules():
+        for fr, to in rules.items():
+            if isinstance(fr, str):
+                fr = (fr, )
+            for f in fr:
+                yield f, to
+
+    for fr, to in iter_rules():
         # TODO precache by domain?
         dom, rest = fr.split('/', maxsplit=1)
         if dom != netloc:
@@ -203,7 +213,8 @@ def transform_split(split: SplitResult):
 
         rest = '/' + rest  # path seems to always start with /
         m = re.match(rest, path)
-        assert m is not None # TODO more defensive?
+        if m is None:
+            continue
         gd = m.groupdict()
 
         (netloc, path, qq) = [t.format(**gd) for t in to]
@@ -284,9 +295,9 @@ import pytest # type: ignore
     , "youtube.com/watch?v=wHrCkyoe72U"
     ),
 
-    # ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
-    # , "youtube.com/watch?v=nyc6RJEEe0U"
-    # ),
+    ( "youtube.com/embed/nyc6RJEEe0U?feature=oembed"
+    , "youtube.com/watch?v=nyc6RJEEe0U"
+    ),
 
     # TODO hmm. ordering?
     ( 'https://youtu.be/iCvmsMzlF7o?list=WL'
@@ -294,20 +305,15 @@ import pytest # type: ignore
     ),
 
     # TODO can even be like that or contain timestamp (&t=)
-    # https://youtu.be/J98jwtm5U4E?list=WL
     # TODO warn if param already present? shouldn't happen..
 
     # TODO could be interesting to do automatic rule extraction by querying one represnetative and then extracting canonical
-
-    # youtu.be / IDENT -> youtube.com/watch?v=IDENT
-
-    # youtu.be/{}
 
     # TODO national domains don't matter for youtube
 
     # [*, 'youtube', ANY_DOMAIN] / 'embed' -> 'youtube.com/watch'
     # TODO use regex backrefs?
-    # 
+    #
 
     ( "m.youtube.com/watch?v=Zn6gV2sdl38"
     , "youtube.com/watch?v=Zn6gV2sdl38"
