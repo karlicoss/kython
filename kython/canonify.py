@@ -345,12 +345,18 @@ def test_youtube(url, expected):
     ( 'https://www.reddit.com/r/firefox/comments/bbugc5/firefox_bans_free_speech_commenting_plugin/?ref=readnext'
     , 'reddit.com/r/firefox/comments/bbugc5/firefox_bans_free_speech_commenting_plugin',
     ),
+
+    ( 'https://www.reddit.com/r/selfhosted/comments/8j8mo3/what_are_you_self_hosting/dz19gh9/?utm_content=permalink&utm_medium=user&utm_source=reddit&utm_name=u_karlicoss'
+    , 'reddit.com/r/selfhosted/comments/8j8mo3/what_are_you_self_hosting/dz19gh9',
+    )
+
     # TODO search queries?
     # https://www.reddit.com/search?q=AutoValue
 
     # TODO def need better markdown handling
     # https://reddit.com/r/intj/comments/cmof04/me_irl/ew4a3dw/][    Me_irl]  
     # reddit.com/r/intj/comments/cmof04/me_irl/ew4a3dw/%5D%5BMe_irl%5D
+
 
 
 ])
