@@ -345,6 +345,14 @@ def test_youtube(url, expected):
     ( 'https://www.reddit.com/r/firefox/comments/bbugc5/firefox_bans_free_speech_commenting_plugin/?ref=readnext'
     , 'reddit.com/r/firefox/comments/bbugc5/firefox_bans_free_speech_commenting_plugin',
     ),
+    # TODO search queries?
+    # https://www.reddit.com/search?q=AutoValue
+
+    # TODO def need better markdown handling
+    # https://reddit.com/r/intj/comments/cmof04/me_irl/ew4a3dw/][    Me_irl]  
+    # reddit.com/r/intj/comments/cmof04/me_irl/ew4a3dw/%5D%5BMe_irl%5D
+
+
 ])
 def test_reddit(url, expected):
     assert canonify(url) == expected
@@ -522,23 +530,43 @@ def main():
         org_ = ""
         can_ = ""
 
+        pr = False
+        def delete(x):
+            nonlocal pr
+            if x in (
+                    'https://www.',
+                    'http://www.',
+                    'http://',
+                    'https://',
+                    'file://',
+                    '/',
+            ):
+                col = None
+            else:
+                if len(x) > 0:
+                    pr = True
+                col = 'red'
+            return C(x, color=col)
+
         for what, ff, tt, ff2, tt2 in sm.get_opcodes():
             if what == 'delete':
-                color = 'red'
+                fn = delete
             elif what == 'equal':
-                color = 'green'
+                fn = lambda x: C(x, color=None)
             else:
-                color = 'yellow'
+                pr = True
+                fn = lambda x: C(x, color='cyan')
             # TODO exclude certain items from comparison?
 
 
-            org_ += C(line[ff: tt] , color=color)
-            can_ += C(can[ff2: tt2], color=color)
+            org_ += fn(line[ff: tt])
+            can_ += fn(can[ff2: tt2])
             cl = max(len(org_), len(can_))
             org_ += ' ' * (cl - len(org_))
             can_ += ' ' * (cl - len(can_))
 
-        stdout.write(f'{org_}\n{can_}\n---\n')
+        if pr:
+            stdout.write(f'{org_}\n{can_}\n---\n')
 
 
 if __name__ == '__main__':
@@ -560,3 +588,7 @@ if __name__ == '__main__':
 
 
 # TODO for debugging, have special mode that only uses query param trimming one by one
+
+
+# TODO running comparison:
+ # sqlite3 /L/data/wereyouhere/visits.sqlite 'select orig_url from visits where orig_url like "%reddit%"' | ./canonify.py
