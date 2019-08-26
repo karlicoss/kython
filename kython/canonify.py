@@ -475,7 +475,19 @@ def test_error():
 # /L/data/wereyouhere/intermediate  ✔  rg 'orig_url.*#' 20190519090753.json | grep -v zoopla | grep -v 'twitter' | grep -v youtube
 
 def main():
-    pass
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument('input', nargs='?')
+    args = p.parse_args()
+
+    if args.input is None:
+        import sys
+        it = sys.stdin
+    else:
+        it = [args.input]
+
+    for line in it:
+        print(canonify(line))
 
 if __name__ == '__main__':
     main()
