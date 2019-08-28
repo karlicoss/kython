@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from typing import Iterable
+
 import urllib.parse
 from urllib.parse import urlsplit, parse_qsl, urlunsplit, parse_qs, urlencode, SplitResult
 
@@ -349,6 +351,8 @@ def test_youtube(url, expected):
     ( 'https://www.reddit.com/r/selfhosted/comments/8j8mo3/what_are_you_self_hosting/dz19gh9/?utm_content=permalink&utm_medium=user&utm_source=reddit&utm_name=u_karlicoss'
     , 'reddit.com/r/selfhosted/comments/8j8mo3/what_are_you_self_hosting/dz19gh9',
     )
+    # TODO hmm. parent relationship can just rely on urls for reddit
+    # just need to support it in server I suppose
 
     # TODO search queries?
     # https://www.reddit.com/search?q=AutoValue
@@ -515,6 +519,7 @@ def main():
     p.add_argument('--human', action='store_true')
     args = p.parse_args()
 
+    it: Iterable[str]
     if args.input is None:
         import sys
         it = sys.stdin
