@@ -10,16 +10,17 @@ class LazyLogger(logging.Logger):
     Normally you get around it with defining get_logger() -> Logger, but that's annoying to do every time you want to use logger.
     This allows you to do logger = LazyLogger('my-script'), which would only be initialised on first use.
     """
-    def __init__(self, name: str, level=None, logzero=True):
+    def __init__(self, name: str, level=None, cronlevel=None, logzero=True):
         self.name = name
-        self.level = level
         self.logzero = logzero
+        self.level = level
+        self.cronlevel = cronlevel
 
     @functools.lru_cache(1)
     def _instance(self) -> logging.Logger:
         logger = logging.getLogger(self.name)
         if self.logzero:
-            setup_logzero(logger, level=self.level)
+            setup_logzero(logger, level=self.level, cronlevel=self.cronlevel)
         else:
             raise NotImplementedError # TODO not sure what do we do here..
         return logger
