@@ -11,16 +11,29 @@ import pytz
 # Mar 8, 2018, 5:14:40 PM
 _TIME_FORMAT = "%b %d, %Y, %I:%M:%S %p"
 
+
+tzmap = {
+    'UTC': pytz.utc,
+    'MSK': pytz.timezone('Europe/Moscow'),
+}
+
 # ugh. something is seriously wrong with datetime, it wouldn't parse timezone aware UTC timestamp :(
 def parse_dt(s: str) -> datetime:
     fmt = _TIME_FORMAT
-    if s.endswith('UTC'): # old takeouts didn't have timezone
-        fmt += ' %Z'
+
+    tz = pytz.utc
+    # old takeouts didn't have timezon
+    # hopefully it was utc? Legacy, so no that much of an issue anymore..
+
+    # ugh. https://bugs.python.org/issue22377 %Z doesn't work properly
+    for tzname, xx in tzmap.items():
+        if s.endswith(tzname):
+            tz = xx # type: ignore
+            s = s[:-(1 + len(tzname))]
+            break
+
     dt = datetime.strptime(s, fmt)
-    if dt.tzinfo is None:
-        # TODO log?
-        # hopefully it was utc? Legacy, so no that much of an issue anymore..
-        dt = pytz.utc.localize(dt)
+    dt = tz.localize(dt)
     return dt
 
 
