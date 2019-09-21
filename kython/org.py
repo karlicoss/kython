@@ -21,6 +21,7 @@ def parse_london_date(s):
         d = pytz.utc.localize(d)
     return d
 
+# TODO reuse orgparse for that?
 def extract_org_datestr(s: str) -> Optional[str]:
     import re
     match = re.search(r'\[\d{4}-\d{2}-\d{2}.*]', s)
@@ -58,5 +59,5 @@ def extract_date_fuzzy(s: str) -> Optional[Dateish]:
         raise RuntimeError
     return dates[0]
 
-from .org_tools import *
+from .korg import *
 # TODO reuse in telegram2org??
