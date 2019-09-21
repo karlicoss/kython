@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import List, Dict
 
 standalone = [
-    'org_tools.py',
+    # 'org_tools.py',
 ]
 
 def check(p: Path) -> List[str]:

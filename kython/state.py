@@ -6,9 +6,7 @@ import os
 import sys
 import warnings
 
-from kython.tui import yesno_or_fail
-
-from kython.ktyping import PathIsh
+PathIsh = Union[str, Path]
 
 from atomicwrites import atomic_write
 
@@ -39,6 +37,7 @@ class JsonState:
         # TODO for simplicity, write empty if file doesn't exist??
 
     def reset(self):
+        from kython.tui import yesno_or_fail
         if yesno_or_fail('reset the state?'):
             self._update(None)
 
