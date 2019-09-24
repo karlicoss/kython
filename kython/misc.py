@@ -463,18 +463,20 @@ R = TypeVar('R')
 def cproperty(f: Callable[[Cl], R]) -> R:
     return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
 
-def test_cprop() -> None:
-    xx = []
-    class A:
-        @cproperty
-        def pr(self) -> str:
-            xx.append(1)
-            return 'value'
+class _A:
+    def __init__(self):
+        self.xx = 0
 
-    a = A()
+    @cproperty
+    def pr(self) -> str:
+        self.xx += 1
+        return 'value'
+
+def test_cprop() -> None:
+    a = _A()
     assert a.pr == 'value'
     assert a.pr == 'value'
-    assert len(xx) == 1
+    assert a.xx == 1
 
 
 
