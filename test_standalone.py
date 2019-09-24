@@ -7,7 +7,7 @@ from shutil import copy
 from tempfile import TemporaryDirectory
 from typing import List, Dict
 
-standalone = [
+standalone: List[str] = [
     # 'org_tools.py',
 ]
 
