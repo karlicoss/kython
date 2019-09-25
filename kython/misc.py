@@ -628,13 +628,12 @@ class classproperty:
         # assert obj is None
         return self.f(cls)
 
+class _B:
+    @classproperty
+    # pylint: disable=no-self-argument
+    def something(cls) -> str:
+        return 'HELLO'
 
 def test_classproperty() -> None:
-    class A:
-        @classproperty
-        # pylint: disable=no-self-argument
-        def something(cls) -> str:
-            return 'HELLO'
-
-    assert A.something == 'HELLO'
+    assert _B.something == 'HELLO'
 
