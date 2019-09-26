@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import List, Dict
 
 standalone: List[str] = [
-    # 'org_tools.py',
+    'state.py',
 ]
 
 def check(p: Path) -> List[str]:
@@ -20,6 +20,8 @@ def check(p: Path) -> List[str]:
 
         checks.append(run([
             'pytest',
+            '--doctest-modules',
+            '-s',
             tmp,
         ], stdout=PIPE))
 
