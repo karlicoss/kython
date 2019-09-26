@@ -22,7 +22,7 @@ class JsonState:
             path: PathIsh,
             dry_run=False,
             default=None,
-            logger=logging.getLogger('kython-json-state'),
+            logger=logging.getLogger('json-state'),
     ) -> None:
         self.path = Path(path)
 
@@ -83,7 +83,6 @@ class JsonState:
             with self.path.open('w') as fo:
                 json.dump(st, fo, indent=1, sort_keys=True)
 
-    # TODO come up with better name?
     def feed(self, key, value, action) -> None:
         if key in self:
             self.logger.debug(f'already handled: %s: %s', key, value)
@@ -92,8 +91,35 @@ class JsonState:
         # TODO not sure about print...
         print(f'adding new item {key}: {value}')
         action()
-        # TODO FIXME check for lock files here?
         self[key] = repr(value)
 
+
+# TODO FIXME try with error, make sure it's executed before action
+
+def tes_statet(tmp_path):
+    path = tmp_path / 'state.json'
+    state = JsonState(path)
+
+    assert not path.exists()
+
+    res = []
+
+    def feed(k, v):
+        def action():
+            res.append(v)
+        state.feed(k, v, action=action)
+
+    feed('a', 123)
+    assert res == [123]
+    feed('a', 456)
+    assert res == [123]
+
+    state = JsonState(path)
+
+    feed('b', 'abacaba')
+
+    assert res == [123, 'abacaba']
+    feed('a', None)
+    assert res == [123, 'abacaba']
 
 
