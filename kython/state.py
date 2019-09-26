@@ -143,5 +143,12 @@ def test_state(tmp_path):
 
     assert mtime() == m2 # shouldn't corrupt or modify the file
 
+    state = JsonState(path, dry_run=True)
+    feed('c', 'c')
+    feed('x', 'y')
+    feed('a', 'whatever')
+
+    assert res == [123, 'abacaba', 'c', 'y']
+    assert mtime() == m2 # should't modify state in dry run mode
 
 
