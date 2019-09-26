@@ -96,9 +96,12 @@ class JsonState:
 
 # TODO FIXME try with error, make sure it's executed before action
 
-def tes_statet(tmp_path):
+def test_state(tmp_path):
     path = tmp_path / 'state.json'
     state = JsonState(path)
+
+    def mtime():
+        return path.stat().st_mtime
 
     assert not path.exists()
 
@@ -111,15 +114,26 @@ def tes_statet(tmp_path):
 
     feed('a', 123)
     assert res == [123]
+
+    m1 = mtime()
+
     feed('a', 456)
     assert res == [123]
 
+    assert mtime() == m1 # shouldn't touch file at all
+
     state = JsonState(path)
 
+    assert mtime() == m1 # shouldn't touch either
+
     feed('b', 'abacaba')
+
+    m2 = mtime()
 
     assert res == [123, 'abacaba']
     feed('a', None)
     assert res == [123, 'abacaba']
+
+    assert mtime() == m2
 
 
