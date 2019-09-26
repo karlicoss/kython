@@ -94,9 +94,8 @@ class JsonState:
         self[key] = repr(value)
 
 
-# TODO FIXME try with error, make sure it's executed before action
-
 def test_state(tmp_path):
+    import pytest
     path = tmp_path / 'state.json'
     state = JsonState(path)
 
@@ -135,5 +134,14 @@ def test_state(tmp_path):
     assert res == [123, 'abacaba']
 
     assert mtime() == m2
+
+    # shouldn't trigger because item is already present
+    state.feed('a', 'err', lambda: None.whatever)
+
+    with pytest.raises(AttributeError):
+        state.feed('hiii', 'error 2 ', lambda: None.whatever)
+
+    assert mtime() == m2 # shouldn't corrupt or modify the file
+
 
 
