@@ -2,12 +2,6 @@ from functools import wraps
 
 from .misc import *
 
-def json_loadf(fname: str):
-    import json
-    with open(fname, 'r') as fo:
-        return json.load(fo)
-
-
 # https://stackoverflow.com/a/12377059/706389
 def listify(fn=None, wrapper=list):
     """
