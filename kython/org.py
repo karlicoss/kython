@@ -58,6 +58,3 @@ def extract_date_fuzzy(s: str) -> Optional[Dateish]:
     if len(dates) > 1:
         raise RuntimeError
     return dates[0]
-
-from .korg import *
-# TODO reuse in telegram2org??
