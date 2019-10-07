@@ -497,7 +497,7 @@ def extra_path(p: PathIsh):
         sys.path.pop()
 
 
-def import_file(p: PathIsh, name=None):
+def import_file(p: Union[str, Path], name=None):
     p = Path(p)
     if name is None:
         name = p.stem
