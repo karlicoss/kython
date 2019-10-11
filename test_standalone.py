@@ -8,6 +8,8 @@ from tempfile import TemporaryDirectory
 from typing import List, Dict
 
 standalone: List[str] = [
+    'kerror.py',
+    'konsume.py',
     'state.py',
 ]
 
