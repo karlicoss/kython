@@ -24,19 +24,6 @@ def unwrap(res: Res[T]) -> T:
     else:
         return res
 
-U = TypeVar('U')
-def fmap(f: Callable[[T], U]) -> Callable[[Res[T]], Res[U]]:
-    # TODO come up with a better name...
-    def cc(r: Res[T]) -> Res[U]:
-        try:
-            v = unwrap(r)
-        except Exception as e: # TODO also check exception against error type? not sure if possible...
-            return e
-        else:
-            return f(v)
-    return cc
-
-# TODO ugh. perhaps function should be error aware somehow? via decorator or something?
 
 def split_errors(l: Iterable[ResT[T, E]], ET=Exception) -> Tuple[List[T], List[E]]:
     rl: List[T] = []
@@ -72,41 +59,27 @@ def echain(ex: E, cause: Exception) -> E:
     #         raise e
 
 
-class Infinity:
-    def __eq__(self, other):
-        return False
-
-    def __lt__(self, other):
-        return False
-
-    def __gt__(self, other):
-        return True
-INF = Infinity()
-
-
 def sort_res_by(items: Iterable[ResT], key) -> List[ResT]:
     """
-    The general idea is: just alaways carry errrors with the entry that precedes it
+    The general idea is: just alaways carry errors with the entry that precedes them
     """
-    # TODO fuck. we don't really need that, but because of the way group_by_comparator
-    # implemented now, we do...
-    items = list(items)
-
-    # TODO kython dependency.. not good
-    from kython.misc import group_by_comparator, flatten
-    def cmp(left, right) -> bool:
-        return is_error(left) # if it's an error we want to attach it to the nex OK
-    groups = list(group_by_comparator(items, cmp))
-
-    def group_key(g):
-        last = g[-1]
-        try:
-            x: ResT = unwrap(last)
-        except:
-            return INF
+    # TODO ResT object should hold exception class?...
+    group = []
+    groups = []
+    for i in items:
+        if isinstance(i, Exception):
+            group.append(i)
         else:
-            return key(x)
-    return flatten(sorted(groups, key=group_key))
+            groups.append((i, group))
+            group = []
+
+    results = []
+    for v, errs in sorted(groups, key=lambda p: key(p[0])):
+        results.extend(errs)
+        results.append(v)
+    results.extend(group)
+
+    return results
 
 
 def test_sort_res_by():
@@ -135,4 +108,7 @@ def test_sort_res_by():
         5,
         Exc('last'),
     ]
+
+    results2 = sort_res_by(ress + [0], lambda x: x) # type: ignore
+    assert results2 == [Exc('last'), 0] + results[:-1]
 
