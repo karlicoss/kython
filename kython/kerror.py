@@ -24,7 +24,6 @@ def unwrap(res: Res[T]) -> T:
     else:
         return res
 
-
 def split_errors(l: Iterable[ResT[T, E]], ET=Exception) -> Tuple[List[T], List[E]]:
     rl: List[T] = []
     el: List[E] = []
@@ -97,7 +96,7 @@ def test_sort_res_by():
         1,
         Exc('last'),
     ]
-    results = sort_res_by(ress, lambda x: x) # type: ignore
+    results = sort_res_by(ress, lambda x: x)
     assert results == [
         1,
         Exc('xxx'),
@@ -109,6 +108,5 @@ def test_sort_res_by():
         Exc('last'),
     ]
 
-    results2 = sort_res_by(ress + [0], lambda x: x) # type: ignore
+    results2 = sort_res_by(ress + [0], lambda x: x)
     assert results2 == [Exc('last'), 0] + results[:-1]
-
