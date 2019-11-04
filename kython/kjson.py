@@ -1,46 +1,10 @@
-from datetime import datetime
-from typing import List
+"""
+Some experimental ideas on JSON processing.
+This is a bit overengineered and I admit it!
+I'll make it more readable, but in the meantime feel free to open an issue if you're confused about something.
+"""
 
-import dateutil.parser
-
-# TODO don't really like it...
-def _date2str(dt: datetime) -> str:
-    return dt.isoformat()
-
-def _str2date(s: str) -> datetime:
-    # yep, it looks like the easiest way to parse iso formatted date...
-    return dateutil.parser.parse(s)
-
-
-class ToFromJson:
-    # TODO additional way to specify date fields?
-    def __init__(self, cls, as_dates: List[str]) -> None:
-        self.cls = cls
-        self.dates = as_dates
-
-    def to(self, obj):
-        res = obj._asdict()
-        for k in res:
-            v = res[k]
-            if k in self.dates:
-                res[k] = _date2str(v)
-
-        # make sure it's actually inverse
-        inv = self.from_(res)
-        assert obj == inv
-        return res
-
-    def from_(self, jj):
-        res = {}
-        for k in jj:
-            v = jj[k]
-            if k in self.dates:
-                res[k] = _str2date(v)
-            else:
-                res[k] = v
-        return self.cls(**res)
-
-from typing import Sequence, Any, Dict, List, Union, Tuple, cast
+from typing import Any, Dict, List, Union, Tuple, cast
 
 
 JDict = Dict[str, Any] # TODO not sure if we can do recursive..
@@ -150,6 +114,48 @@ def test_json_processor():
     assert link == 'http://reddit.com'
     pp = [p[1] for p in path]
     assert pp == ['x', 'y', 1, 'link']
+
+
+from datetime import datetime
+# TODO don't really like it...
+def _date2str(dt: datetime) -> str:
+    return dt.isoformat()
+
+
+import dateutil.parser
+def _str2date(s: str) -> datetime:
+    # yep, it looks like the easiest way to parse iso formatted date...
+    return dateutil.parser.parse(s)
+
+
+class ToFromJson:
+    # TODO additional way to specify date fields?
+    def __init__(self, cls, as_dates: List[str]) -> None:
+        self.cls = cls
+        self.dates = as_dates
+
+    def to(self, obj):
+        res = obj._asdict()
+        for k in res:
+            v = res[k]
+            if k in self.dates:
+                res[k] = _date2str(v)
+
+        # make sure it's actually inverse
+        inv = self.from_(res)
+        assert obj == inv
+        return res
+
+    def from_(self, jj):
+        res = {}
+        for k in jj:
+            v = jj[k]
+            if k in self.dates:
+                res[k] = _str2date(v)
+            else:
+                res[k] = v
+        return self.cls(**res)
+
 
 
 if __name__ == '__main__':

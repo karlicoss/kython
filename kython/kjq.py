@@ -1,3 +1,7 @@
+"""
+Some combinators for jq
+"""
+
 def pipe(*queries):
     return ' | '.join(queries)
 
