@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import List, Dict
 
 standalone: List[str] = [
+    'kompress.py',
     'kjson.py',
     'kjq.py',
     'kerror.py',

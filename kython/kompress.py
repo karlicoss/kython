@@ -1,16 +1,16 @@
 from pathlib import Path
+from typing import Union
 
-import lzma
-from zipfile import ZipFile
-
-from .ktyping import PathIsh
+PathIsh = Union[Path, str]
 
 def open(path: PathIsh, *args, **kwargs): # TODO is it bytes stream??
     pp = Path(path)
     suf = pp.suffix
     if suf in ('.xz',):
+        import lzma
         return lzma.open(pp, *args, **kwargs)
     elif suf in ('.zip',):
+        from zipfile import ZipFile
         return ZipFile(pp).open(*args, **kwargs)
     elif suf in ('.lz4',):
         import lz4.frame # type: ignore
