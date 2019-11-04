@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import List, Dict
 
 standalone: List[str] = [
+    'cannon.py',
     'kompress.py',
     'kjson.py',
     'kjq.py',
@@ -28,26 +29,26 @@ def check(p: Path) -> List[str]:
             '--doctest-modules',
             '-s',
             tmp,
-        ], stdout=PIPE, cwd=tdir))
+        ], cwd=tdir))
 
         checks.append(run([
             'mypy',
             '--strict-optional',
             '--check-untyped-defs',
             tmp
-        ], stdout=PIPE, cwd=tdir))
+        ], cwd=tdir))
 
         checks.append(run([
             'pylint',
             '-E',
             tmp,
-        ], stdout=PIPE, cwd=tdir))
+        ], cwd=tdir))
 
     errs = []
     for c in checks:
         if c.returncode == 0:
             continue
-        errs.append(c.stdout.decode('utf8'))
+        errs.append(f'ERROR SHILE CHECKING {p}')
     return errs
 
 def main():
