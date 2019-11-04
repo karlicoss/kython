@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""
+Experimental libarary for normalising domain names and urls to achieve 'canonical' urls for content.
+E.g. 
+ https://mobile.twitter.com/demarionunn/status/928409560548769792
+and
+ https://twitter.com/demarionunn/status/928409560548769792
+are same content, but you can't tell that by URL equality. Even canonical urls are different!
+
+Also some experiments to establish 'links' hierarchy.
+"""
 from typing import Iterable
 
 import urllib.parse
