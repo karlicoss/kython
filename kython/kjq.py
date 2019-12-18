@@ -11,6 +11,7 @@ def jdel(q):
 def jq_del_all(*keys, split_by=10):
     parts = []
     # TODO shit. looks like query might be too long for jq...
+    # TODO wow, split_by almost doesn't make any difference. actually _not splitting_ slows it down!
     for q in range(0, len(keys), split_by):
         kk = keys[q: q + split_by]
         parts.append(jdel('.. | ({})'.format(', '.join('.' + k + '?' for k in kk))))
