@@ -19,36 +19,41 @@ standalone: List[str] = [
 
 def check(p: Path) -> List[str]:
     checks = []
+
+    def check(*args, **kwargs):
+        print(' '.join(args))
+        checks.append(run(args, **kwargs))
+
     with TemporaryDirectory() as tdir:
     # TODO how to make sure they won't autoimport
         tmp = join(tdir, p.name)
         copy(p, tmp)
 
-        checks.append(run([
+        check(
             'pytest',
             '--doctest-modules',
             '-s',
             tmp,
-        ], cwd=tdir))
+        )
 
-        checks.append(run([
+        check(
             'mypy',
             '--strict-optional',
             '--check-untyped-defs',
-            tmp
-        ], cwd=tdir))
+            tmp,
+        )
 
-        checks.append(run([
+        check(
             'pylint',
             '-E',
             tmp,
-        ], cwd=tdir))
+        )
 
     errs = []
     for c in checks:
         if c.returncode == 0:
             continue
-        errs.append(f'ERROR SHILE CHECKING {p}')
+        errs.append(f'ERROR WHILE CHECKING {p}')
     return errs
 
 def main():

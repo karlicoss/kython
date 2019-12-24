@@ -1,21 +1,18 @@
-from typing import Union, TypeVar, Iterator, Callable, Iterable, List, Tuple, Type
+"""
+Various error handling helpers
+See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
+"""
+
+from itertools import tee
+from typing import Union, TypeVar, Iterable, List, Tuple, Type
 
 
 T = TypeVar('T')
-E = TypeVar('E', bound=Exception)
+E = TypeVar('E', bound=Exception) # TODO make covariant?
 
 ResT = Union[T, E]
 
 Res = ResT[T, Exception]
-
-
-# TODO make it a bit more typed??
-def is_error(res: Res[T]) -> bool:
-    return isinstance(res, Exception)
-
-
-def is_ok(res: Res[T]) -> bool:
-    return not is_error(res)
 
 
 def unwrap(res: Res[T]) -> T:
@@ -24,38 +21,27 @@ def unwrap(res: Res[T]) -> T:
     else:
         return res
 
-def split_errors(l: Iterable[ResT[T, E]], ET=Exception) -> Tuple[List[T], List[E]]:
-    rl: List[T] = []
-    el: List[E] = []
-    for x in l:
-        if isinstance(x, ET):
-            el.append(x)
-        else:
-            rl.append(x) # type: ignore
-    return rl, el
 
-
-def ytry(cb) -> Iterator[Exception]:
-    try:
-        cb()
-    except Exception as e:
-        yield e
-
-
-# TODO experimental, not sure if I like it
 def echain(ex: E, cause: Exception) -> E:
     ex.__cause__ = cause
-    # TODO assert cause is none?
-    # TODO copy??
     return ex
-    # try:
-    #     # TODO is there a awy to get around raise from?
-    #     raise ex from cause
-    # except Exception as e:
-    #     if isinstance(e, type(ex)):
-    #         return e
-    #     else:
-    #         raise e
+
+
+def split_errors(l: Iterable[ResT[T, E]], ET: Type[E]) -> Tuple[Iterable[T], Iterable[E]]:
+    # TODO would be nice to have ET=Exception default?
+    vit, eit = tee(l)
+    # TODO ugh, not sure if I can reconcile type checking and runtime and convince mypy that ET and E are the same type?
+    values: Iterable[T] = (
+        r # type: ignore[misc]
+        for r in vit
+        if not isinstance(r, ET))
+    errors: Iterable[E] = (
+        r
+        for r in eit
+        if     isinstance(r, ET))
+    # TODO would be interesting to be able to have yield statement anywehere in code
+    # so there are multiple 'entry points' to the return value
+    return (values, errors)
 
 
 def sort_res_by(items: Iterable[ResT], key) -> List[ResT]:
@@ -96,7 +82,7 @@ def test_sort_res_by():
         1,
         Exc('last'),
     ]
-    results = sort_res_by(ress, lambda x: x)
+    results = sort_res_by(ress, lambda x: x) # type: ignore
     assert results == [
         1,
         Exc('xxx'),
@@ -108,5 +94,24 @@ def test_sort_res_by():
         Exc('last'),
     ]
 
-    results2 = sort_res_by(ress + [0], lambda x: x)
+    results2 = sort_res_by(ress + [0], lambda x: x) # type: ignore
     assert results2 == [Exc('last'), 0] + results[:-1]
+
+
+# TODO get rid of these vvv
+# TODO make it a bit more typed??
+def is_error(res: Res[T]) -> bool:
+    return isinstance(res, Exception)
+
+
+def is_ok(res: Res[T]) -> bool:
+    return not is_error(res)
+
+
+from typing import Iterator
+def ytry(cb) -> Iterator[Exception]:
+    try:
+        cb()
+    except Exception as e:
+        yield e
+
