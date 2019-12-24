@@ -27,6 +27,7 @@ def echain(ex: E, cause: Exception) -> E:
     return ex
 
 
+# TODO it doesn't really have to be split_errors?
 def split_errors(l: Iterable[ResT[T, E]], ET: Type[E]) -> Tuple[Iterable[T], Iterable[E]]:
     # TODO would be nice to have ET=Exception default?
     vit, eit = tee(l)
@@ -96,22 +97,3 @@ def test_sort_res_by():
 
     results2 = sort_res_by(ress + [0], lambda x: x) # type: ignore
     assert results2 == [Exc('last'), 0] + results[:-1]
-
-
-# TODO get rid of these vvv
-# TODO make it a bit more typed??
-def is_error(res: Res[T]) -> bool:
-    return isinstance(res, Exception)
-
-
-def is_ok(res: Res[T]) -> bool:
-    return not is_error(res)
-
-
-from typing import Iterator
-def ytry(cb) -> Iterator[Exception]:
-    try:
-        cb()
-    except Exception as e:
-        yield e
-
