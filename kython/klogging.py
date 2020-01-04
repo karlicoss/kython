@@ -1,5 +1,15 @@
 import functools
 import logging
+from typing import Union, Optional
+
+Level = int
+
+def mklevel(level: Optional[Union[Level, str]]) -> Level:
+    if level is None:
+        return logging.NOTSET
+    if isinstance(level, int):
+        return level
+    return getattr(logging, level.upper())
 
 
 # TODO name a bit misleading?
@@ -13,8 +23,8 @@ class LazyLogger(logging.Logger):
     def __init__(self, name: str, level=None, cronlevel=None, logzero=True):
         self.name = name
         self.logzero = logzero
-        self.level = level
-        self.cronlevel = cronlevel
+        self.level = mklevel(level)
+        self.cronlevel = mklevel(cronlevel)
 
     @functools.lru_cache(1)
     def _instance(self) -> logging.Logger:
