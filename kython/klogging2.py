@@ -18,6 +18,26 @@ _FMT = '{start}[%(levelname)-7s %(asctime)s %(name)s %(filename)s:%(lineno)d]{en
 _FMT_COLOR   = _FMT.format(start='%(color)s', end='%(end_color)s')
 _FMT_NOCOLOR = _FMT.format(start='', end='')
 
+
+def setup_logger(logger: logging.Logger, level: Level) -> None:
+    try:
+        import logzero # type: ignore
+    except ModuleNotFoundError:
+        import warnings
+        warnings.warn("You might want to install 'logzero' for nice colored logs!")
+        logger.setLevel(level)
+        h = logging.StreamHandler()
+        h.setLevel(level)
+        h.setFormatter(logging.Formatter(fmt=_FMT_NOCOLOR))
+        logger.addHandler(h)
+    else:
+        formatter = logzero.LogFormatter(
+            fmt=_FMT_COLOR,
+            datefmt=None, # pass None to prevent logzero from messing with date format
+        )
+        logzero.setup_logger(logger.name, level=level, formatter=formatter)
+
+
 class LazyLogger(logging.Logger):
     # TODO perhaps should use __new__?
 
@@ -29,22 +49,7 @@ class LazyLogger(logging.Logger):
         def isEnabledFor_lazyinit(*args, logger=logger, orig=logger.isEnabledFor, **kwargs):
             att = 'lazylogger_init_done'
             if not getattr(logger, att, False): # init once, if necessary
-                try:
-                    import logzero # type: ignore
-                except ModuleNotFoundError:
-                    import warnings
-                    warnings.warn("You might want to install 'logzero' for nice colored logs!")
-                    logger.setLevel(lvl)
-                    h = logging.StreamHandler()
-                    h.setLevel(lvl)
-                    h.setFormatter(logging.Formatter(fmt=_FMT_NOCOLOR))
-                    logger.addHandler(h)
-                else:
-                    formatter = logzero.LogFormatter(
-                        fmt=_FMT_COLOR,
-                        datefmt=None, # pass None to prevent logzero from messing with date format
-                    )
-                    logzero.setup_logger(logger.name, level=lvl, formatter=formatter)
+                setup_logger(logger, level=lvl)
                 setattr(logger, att, True)
             return orig(*args, **kwargs)
 
