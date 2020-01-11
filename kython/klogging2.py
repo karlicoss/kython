@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import logging
 from typing import Union, Optional
 
@@ -13,26 +14,37 @@ def mklevel(level: LevelIsh) -> Level:
     return getattr(logging, level.upper())
 
 
-
-_FMT = '%(color)s[%(levelname)-7s %(asctime)s %(name)s %(filename)s:%(lineno)d]%(end_color)s %(message)s'
+_FMT = '{start}[%(levelname)-7s %(asctime)s %(name)s %(filename)s:%(lineno)d]{end} %(message)s'
+_FMT_COLOR   = _FMT.format(start='%(color)s', end='%(end_color)s')
+_FMT_NOCOLOR = _FMT.format(start='', end='')
 
 class LazyLogger(logging.Logger):
     # TODO perhaps should use __new__?
 
     def __new__(cls, name, level: LevelIsh = 'DEBUG'):
         logger = logging.getLogger(name)
-        level = mklevel(level)
+        lvl = mklevel(level)
 
         # this is called prior to all _log calls so makes sense to do it here?
         def isEnabledFor_lazyinit(*args, logger=logger, orig=logger.isEnabledFor, **kwargs):
             att = 'lazylogger_init_done'
             if not getattr(logger, att, False): # init once, if necessary
-                import logzero # type: ignore
-                formatter = logzero.LogFormatter(
-                    fmt=_FMT,
-                    datefmt=None, # pass None to prevent logzero from messing with date format
-                )
-                logzero.setup_logger(logger.name, level=level, formatter=formatter)
+                try:
+                    import logzero # type: ignore
+                except ModuleNotFoundError:
+                    import warnings
+                    warnings.warn("You might want to install 'logzero' for nice colored logs!")
+                    logger.setLevel(lvl)
+                    h = logging.StreamHandler()
+                    h.setLevel(lvl)
+                    h.setFormatter(logging.Formatter(fmt=_FMT_NOCOLOR))
+                    logger.addHandler(h)
+                else:
+                    formatter = logzero.LogFormatter(
+                        fmt=_FMT_COLOR,
+                        datefmt=None, # pass None to prevent logzero from messing with date format
+                    )
+                    logzero.setup_logger(logger.name, level=lvl, formatter=formatter)
                 setattr(logger, att, True)
             return orig(*args, **kwargs)
 
