@@ -2,14 +2,8 @@ import functools
 import logging
 from typing import Union, Optional
 
-Level = int
 
-def mklevel(level: Optional[Union[Level, str]]) -> Level:
-    if level is None:
-        return logging.NOTSET
-    if isinstance(level, int):
-        return level
-    return getattr(logging, level.upper())
+from .klogging2 import mklevel
 
 
 # TODO name a bit misleading?
@@ -77,7 +71,7 @@ def setup_logzero(logger, logfile: str = None, level = None, cronlevel = None):
 
 
 # TODO remove it?
-def setup_coloredlogs(logger, level=None):
+def _setup_coloredlogs(logger, level=None):
     # TODO should be same as logzero
     COLOREDLOGGER_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
     import os
