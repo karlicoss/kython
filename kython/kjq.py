@@ -18,33 +18,31 @@ def jq_del_all(*keys, split_by=10):
     return pipe(*parts)
 
 
-Command = str
+from typing import Dict, Any, Callable
+Json = Dict[str, Any]
 
-def rg_del_all(*keys) -> Command:
-    """
-    # TODO pprint in advance??
-    Assuming pretty printed output?
-    """
 
-    JQ = 'jq . '
-    if len(keys) == 0:
-        return JQ
+def del_all_kjson(*keys) -> Callable[[Json], Json]:
+    from kython.kjson import JsonProcessor
+    class DeleteKeys(JsonProcessor):
+        def __init__(self, *delk: str) -> None:
+            super().__init__()
+            self.delk = set(delk)
 
-    # TODO FIXME pipefail??
-    # TODO or just multiple commands?
-    cmd = 'rg --invert-match --fixed-strings'
+        # TODO huh, ok, this is clearly very powerful. need to publish somwhere..
+        def handle_dict(self, js, jp) -> None:
+            todel = self.delk.intersection(js.keys())
+            for k in todel:
+                del js[k]
 
-    # TODO how to assert no special characters?
-    import string
-    patl = []
-    for key in keys:
-        assert all(map(lambda c: c in (string.ascii_letters + string.digits + '_'), key)), f'Bad key {key}'
-        patl.append(f'"{key}":')
 
-    pats = '|'.join(patl)
-    res = f'''{JQ} | {cmd} '{pats}' '''
+    def run(json: Json, keys=keys) -> Json:
+        dk = DeleteKeys(*keys)
+        dk.run(json)
+        # TODO eh. it's inplace; might be a bit unexpected...
+        return json
 
-    return res
+    return run
 
 
 _JSON_EXAMPLE = '''
@@ -107,28 +105,14 @@ def test_rg_del_all(json, delk, exp):
     # syntax check
     run('python3 -m json.tool', shell=True, input=exp.encode('utf8')).check_returncode()
 
-
-    from .kjson import JsonProcessor
-    class DeleteKeys(JsonProcessor):
-        def __init__(self, *delk: str) -> None:
-            super().__init__()
-            self.delk = set(delk)
-
-        # TODO huh, ok, this is clearly very powerful. need to publish somwhere..
-        def handle_dict(self, js, jp) -> None:
-            todel = self.delk.intersection(js.keys())
-            for k in todel:
-                del js[k]
-
-
     def dodo(s: str, *args):
         import json
         j = json.loads(s)
-        dk = DeleteKeys(*args)
-        dk.run(j)
+        filt = del_all_kjson(*args)
+        j = filt(j)
         js = json.dumps(j)
-        cmd = rg_del_all()
-        r = run(cmd, shell=True, input=js.encode('utf8'), stdout=PIPE)
+        # pretty print
+        r = run('jq .', shell=True, input=js.encode('utf8'), stdout=PIPE)
         r.check_returncode()
         return r.stdout.decode('utf8')
 
