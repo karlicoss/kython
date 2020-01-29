@@ -67,6 +67,8 @@ _JSON_EXAMPLE = '''
 import pytest # type: ignore
 
 
+
+
 _EXAMPLE = '{"key1": "whatever...", "key2": {"key1": "hello", "alala": "oops key1 "}}'
 
 @pytest.mark.parametrize('json, delk, exp', [
@@ -88,24 +90,47 @@ _EXAMPLE = '{"key1": "whatever...", "key2": {"key1": "hello", "alala": "oops key
 
 '''
     ),
-    # (
-    #     _EXAMPLE,
-    #     ('key2',),
-    #     '{}'
-    # ),
+    (
+        _EXAMPLE,
+        ('key2',),
+'''
+{
+  "key1": "whatever..."
+}
+'''
+    ),
     # (_JSON_EXAMPLE, {}),
 ])
 def test_rg_del_all(json, delk, exp):
     from subprocess import run, PIPE
 
     # syntax check
-    run('jq .', shell=True, input=exp.encode('utf8')).check_returncode()
+    run('python3 -m json.tool', shell=True, input=exp.encode('utf8')).check_returncode()
+
+
+    from .kjson import JsonProcessor
+    class DeleteKeys(JsonProcessor):
+        def __init__(self, *delk: str) -> None:
+            super().__init__()
+            self.delk = set(delk)
+
+        # TODO huh, ok, this is clearly very powerful. need to publish somwhere..
+        def handle_dict(self, js, jp) -> None:
+            todel = self.delk.intersection(js.keys())
+            for k in todel:
+                del js[k]
+
 
     def dodo(s: str, *args):
-       cmd = rg_del_all(*args)
-       r = run(cmd, shell=True, input=s.encode('utf8'), stdout=PIPE)
-       r.check_returncode()
-       return r.stdout.decode('utf8')
+        import json
+        j = json.loads(s)
+        dk = DeleteKeys(*args)
+        dk.run(j)
+        js = json.dumps(j)
+        cmd = rg_del_all()
+        r = run(cmd, shell=True, input=js.encode('utf8'), stdout=PIPE)
+        r.check_returncode()
+        return r.stdout.decode('utf8')
 
     res = dodo(json, *delk)
     assert res.strip('\n') == exp.strip('\n')
