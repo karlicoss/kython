@@ -38,14 +38,14 @@ def jq_del_all_faster(*keys, split_by=None):
     '''.format(pred=pred)
 
 
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Sequence
 Json = Dict[str, Any]
 JsonFilter = Callable[[Json], Json]
 
 def del_all_kjson(*keys) -> JsonFilter:
     from kython.kjson import JsonProcessor
     class DeleteKeys(JsonProcessor):
-        def __init__(self, *delk: str) -> None:
+        def __init__(self, delk: Sequence[str]) -> None:
             super().__init__()
             self.delk = set(delk)
 
@@ -57,7 +57,7 @@ def del_all_kjson(*keys) -> JsonFilter:
 
 
     def run(json: Json, keys=keys) -> Json:
-        dk = DeleteKeys(*keys)
+        dk = DeleteKeys(delk=keys)
         dk.run(json)
         # TODO eh. it's inplace; might be a bit unexpected...
         return json
