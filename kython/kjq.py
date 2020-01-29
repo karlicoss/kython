@@ -25,9 +25,26 @@ def rg_del_all(*keys) -> Command:
     # TODO pprint in advance??
     Assuming pretty printed output?
     """
+
+    JQ = 'jq . '
+    if len(keys) == 0:
+        return JQ
+
     # TODO FIXME pipefail??
     # TODO or just multiple commands?
-    return 'python3 -m json.tool'
+    cmd = 'rg --invert-match --fixed-strings'
+
+    # TODO how to assert no special characters?
+    import string
+    patl = []
+    for key in keys:
+        assert all(map(lambda c: c in (string.ascii_letters + string.digits + '_'), key)), f'Bad key {key}'
+        patl.append(f'"{key}":')
+
+    pats = '|'.join(patl)
+    res = f'''{JQ} | {cmd} '{pats}' '''
+
+    return res
 
 
 _JSON_EXAMPLE = '''
@@ -50,18 +67,49 @@ _JSON_EXAMPLE = '''
 import pytest # type: ignore
 
 
-@pytest.mark.parametrize('json, exp', [
-    ('{}', '{}'),
+_EXAMPLE = '{"key1": "whatever...", "key2": {"key1": "hello", "alala": "oops key1 "}}'
+
+@pytest.mark.parametrize('json, delk, exp', [
+    ('{}'      , (), '{}'),
+    ('["test"]', ("test"), '''
+[
+  "test"
+]
+'''),
+    (
+        _EXAMPLE,
+        ('key1',),
+'''
+{
+  "key2": {
+    "alala": "oops key1 "
+  }
+}
+
+'''
+    ),
+    # (
+    #     _EXAMPLE,
+    #     ('key2',),
+    #     '{}'
+    # ),
     # (_JSON_EXAMPLE, {}),
 ])
-def test_rg_del_all(json, exp):
+def test_rg_del_all(json, delk, exp):
     from subprocess import run, PIPE
+
+    # syntax check
+    run('jq .', shell=True, input=exp.encode('utf8')).check_returncode()
+
     def dodo(s: str, *args):
        cmd = rg_del_all(*args)
        r = run(cmd, shell=True, input=s.encode('utf8'), stdout=PIPE)
        r.check_returncode()
-       return r.stdout.decode('utf8').rstrip('\n')
+       return r.stdout.decode('utf8')
 
-    res = dodo(json, 'title')
-    assert res == exp
+    res = dodo(json, *delk)
+    assert res.strip('\n') == exp.strip('\n')
+
+
+
 
