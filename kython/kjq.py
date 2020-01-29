@@ -18,11 +18,31 @@ def jq_del_all(*keys, split_by=10):
     return pipe(*parts)
 
 
+# https://stackoverflow.com/a/39420551/706389
+# TODO this jq_del_all should be in kython and tested...
+# TODO might be used by smth else??
+# TODO not sure if walk is available by default?
+def jq_del_all_faster(*keys, split_by=None):
+    # ok, this is fucking unbearably slow...
+    # pred = 'any(index({keyss}); . != null)'.format(keyss=', '.join(f'"{k}"' for k in keys))
+
+    # regex is quite bit faster! jeez.
+    # like a 3x speedup over jdel(.. | ) thing
+    # TODO FIXME careful; might need escaping..
+    pred = 'test("^({keyss})$")'.format(keyss='|'.join(keys))
+    return '''walk(
+      if type == "object"
+        then with_entries(select( .key | {pred} | not))
+        else .
+      end)
+    '''.format(pred=pred)
+
+
 from typing import Dict, Any, Callable
 Json = Dict[str, Any]
+JsonFilter = Callable[[Json], Json]
 
-
-def del_all_kjson(*keys) -> Callable[[Json], Json]:
+def del_all_kjson(*keys) -> JsonFilter:
     from kython.kjson import JsonProcessor
     class DeleteKeys(JsonProcessor):
         def __init__(self, *delk: str) -> None:
