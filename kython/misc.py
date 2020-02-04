@@ -44,16 +44,7 @@ def import_relative(___name___: str, mname: str):
 def module_items(module) -> "OrderedDict[str, Any]":
     return OrderedDict((name, getattr(module, name)) for name in dir(module))
 
-def import_from(path, name, package=None):
-    path = str(path)
-    import sys
-    try:
-        sys.path.append(path) # TODO insert/remove?
-        import importlib
-        return importlib.import_module(name, package=package)
-    finally:
-        sys.path.remove(path)
-
+from .kimport import import_from
 
 
 def listdir_abs(d: str):
@@ -487,20 +478,14 @@ def fget(prop):
 
 from .ktyping import PathIsh
 
+from .kimport import extra_path
 from contextlib import contextmanager
-@contextmanager
-def extra_path(p: PathIsh):
-    try:
-        sys.path.append(str(p))
-        yield
-    finally:
-        sys.path.pop()
-
 
 def import_file(p: Union[str, Path], name=None):
     p = Path(p)
     if name is None:
         name = p.stem
+    # TODO hmm. does it need to load parent??
     import importlib.util
     spec = importlib.util.spec_from_file_location(name, p) # type: ignore
     foo = importlib.util.module_from_spec(spec)

@@ -14,6 +14,7 @@ standalone: List[str] = [
     'kjq.py',
     'kerror.py',
     'konsume.py',
+    'kimport.py',
     'state.py',
 ]
 
