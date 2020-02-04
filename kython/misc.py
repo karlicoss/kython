@@ -44,13 +44,13 @@ def import_relative(___name___: str, mname: str):
 def module_items(module) -> "OrderedDict[str, Any]":
     return OrderedDict((name, getattr(module, name)) for name in dir(module))
 
-def import_from(path, name):
+def import_from(path, name, package=None):
     path = str(path)
     import sys
     try:
-        sys.path.append(path)
+        sys.path.append(path) # TODO insert/remove?
         import importlib
-        return importlib.import_module(name)
+        return importlib.import_module(name, package=package)
     finally:
         sys.path.remove(path)
 
