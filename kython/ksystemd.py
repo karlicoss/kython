@@ -25,13 +25,17 @@ def systemd(*args, method=check_call):
         'systemctl', '--user', *args,
     ])
 
-def setup(*, unit_name: str, exec_start: str, description: str=""):
-    config = SYSTEMD_CONFIG.format(exec_start=exec_start, description=description)
 
+def setup(*, unit_name: str, exec_start: str, description: str=""):
+    body = SYSTEMD_CONFIG.format(exec_start=exec_start, description=description)
+    install_body(unit_name=unit_name, body=body)
+
+
+def install_body(*, unit_name: str, body: str) -> None:
     out = Path(f'~/.config/systemd/user/{unit_name}').expanduser()
     print(f"Writing systemd config to {out}", file=sys.stderr)
 
-    out.write_text(config)
+    out.write_text(body)
 
     try:
         systemd('stop' , unit_name, method=run) # ignore errors here if it wasn't running in the first place
